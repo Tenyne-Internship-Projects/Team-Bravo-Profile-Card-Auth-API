@@ -4,7 +4,7 @@ info:
   description: "# API Adventure 🚀\n\n# Explore the world of CRUD operations! 🌐\n\n### Step 1: Discover the Routes 🔍\n\n- GET: Retrieve data with a simple request.\n    \n- POST: Create new data and watch it come to life.\n    \n- PUT: Update existing data and see the changes.\n    \n- DELETE: Remove data and observe the outcome.\n    \n\n### Step 2: Analyze the Responses 📊\n\n- Check the status code: Is it 200 OK?\n    \n- Measure the response time: How fast is your API?\n    \n- Inspect the response size: Is it optimized?\n    \n\n### Step 3: Play with Body Data 🎨\n\n- Update existing data in the PUT request.\n    \n- Add new data in the POST request.\n    \n- See how the API responds to different inputs.\n    \n\n### Get ready to embark on an API adventure! 🚀\n\nThis server helps create user account, validate it and create user profile and update it.\n\nThis test aims to be more engaging and concise, showcasing the development progress while still conveying the essential functionalities and CRUD operations and API requests."
   version: 1.0.0
 servers:
-- url: http://localhost:3000
+- url: https://team-bravo-profile-card-auth-api.onrender.com/
 tags:
 - name: user
   description: "this manage all user activity from register to verifying email, login, change password and other user centric functions"
