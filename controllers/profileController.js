@@ -3,7 +3,7 @@ import{
   getProfileByUserId,
   updateProf,
   deleteProfileByUserId
-} from '../Model/profileModel.js';
+} from '../model/profileModel.js';
 
 // Create a new profile
 export const createProfile = async (req, res) => {
