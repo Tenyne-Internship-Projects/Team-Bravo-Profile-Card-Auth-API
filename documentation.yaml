@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: Profilapp
+  description: "# API Adventure 🚀\n\n# Explore the world of CRUD operations! 🌐\n\n### Step 1: Discover the Routes 🔍\n\n- GET: Retrieve data with a simple request.\n    \n- POST: Create new data and watch it come to life.\n    \n- PUT: Update existing data and see the changes.\n    \n- DELETE: Remove data and observe the outcome.\n    \n\n### Step 2: Analyze the Responses 📊\n\n- Check the status code: Is it 200 OK?\n    \n- Measure the response time: How fast is your API?\n    \n- Inspect the response size: Is it optimized?\n    \n\n### Step 3: Play with Body Data 🎨\n\n- Update existing data in the PUT request.\n    \n- Add new data in the POST request.\n    \n- See how the API responds to different inputs.\n    \n\n### Get ready to embark on an API adventure! 🚀\n\nThis server helps create user account, validate it and create user profile and update it.\n\nThis test aims to be more engaging and concise, showcasing the development progress while still conveying the essential functionalities and CRUD operations and API requests."
+  version: 1.0.0
+servers:
+- url: http://localhost:3000
+tags:
+- name: user
+  description: "this manage all user activity from register to verifying email, login, change password and other user centric functions"
+- name: profile
+  description: This manage profile related functions and end point.
+paths:
+  /api/auth/register:
+    post:
+      tags:
+      - user
+      summary: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Ashaolu sanmson
+                email: samsonashaol16@gmail.com
+                password: zamzamngi123@
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/auth/resend-otp:
+    post:
+      tags:
+      - user
+      summary: resend-otp_to_verify_email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: samsonashaolu16@gmail.com
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/auth/verify-otp:
+    post:
+      tags:
+      - user
+      summary: verify_email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: "{\r\n    \"otp\":\"546838\",\r\n    \"email\":\"samsonashaol16@gmail.com\",\r\n}"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/auth/login:
+    post:
+      tags:
+      - user
+      summary: login user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Ashaolu sanmson
+                email: samsonashaol16@gmail.com
+                password: zamzamngi123@
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      security:
+      - bearerAuth: []
+  /api/auth/forgot-password:
+    post:
+      tags:
+      - user
+      summary: send_otp_for_reset_password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: samsonashaol16@gmail.com
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/auth/reset-password:
+    post:
+      tags:
+      - user
+      summary: reset-password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                otp: "415489"
+                email: samsonashaol16@gmail.com
+                newPassword: zamzammmngi123@
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/profile/create:
+    post:
+      tags:
+      - profile
+      summary: create profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fullName: ashaoly samosa
+                email: ashaolusamson@gmail.com
+                phone: "081358702"
+                country: nevermore
+                city: nully
+                ' skills': staying on point
+                bio: i an a developer with a passion to buid software rsolutions that improve human life.
+                avatar: "null"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      security:
+      - bearerAuth: []
+  /api/profile/get:
+    get:
+      tags:
+      - profile
+      summary: get user profile
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      security:
+      - bearerAuth: []
+  /api/profile/update:
+    put:
+      tags:
+      - profile
+      summary: Update user profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fullName: ashaoly samomasa
+                email: ashaolusamsohhn@gmail.com
+                phone: 081h358702
+                country: nevmore
+                city: nuljacosaky
+                bio: i an a developer with a passion to buid software rsolutions that improve human life.
+                avatar: "null"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      security:
+      - bearerAuth: []
+  /api/profile/delete:
+    delete:
+      tags:
+      - profile
+      summary: Delete user profile
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      security:
+      - bearerAuth: []
+components:
+  schemas: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
