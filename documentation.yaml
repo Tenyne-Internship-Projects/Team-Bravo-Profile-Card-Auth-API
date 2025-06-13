@@ -25,6 +25,7 @@ paths:
                 name: Ashaolu sanmson
                 email: samsonashaol16@gmail.com
                 password: zamzamngi123@
+                "confirmPassword": "Zamzamngi123@"
       responses:
         "200":
           description: Successful response
@@ -57,7 +58,7 @@ paths:
           application/json:
             schema:
               type: object
-              example: "{\r\n    \"otp\":\"546838\",\r\n    \"email\":\"samsonashaol16@gmail.com\",\r\n}"
+              example: {"otp":"546838", "email":"samsonashaol16@gmail.com"}
       responses:
         "200":
           description: Successful response
@@ -74,7 +75,6 @@ paths:
             schema:
               type: object
               example:
-                name: Ashaolu sanmson
                 email: samsonashaol16@gmail.com
                 password: zamzamngi123@
       responses:
