@@ -2,20 +2,23 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {
   createUser, getUserByEmail,
-  createOTP, verifyUserAccount,
+  createOTP,
   setResetOtp, resetPassword
-} from '../Model/userModel.js';
+} from '../model/userModel.js';
 import { generateOTP } from '../utils/Otpgenerator.js';
 import { sendOTPEmail}  from '../utils/mailer.js';
 import { client } from '../config/connectDb.js';
+import { registerValidator } from '../utils/validation.js';
 
 
 export const register = async (req, res) => {
-   const { name, email, password } = req.body; 
-  if (!name || !email || !password) {
+  const {error}=registerValidator.validate(req.body);
+  if (error) {
 return res.status(400).json({
- success: false, message: 'Missing fields' });
-} try {
+ success: false, message: error.details[0].message });
+}
+const { name, email, password } = req.body;
+try {
 const existingUser = await getUserByEmail(email);
 if (existingUser) { 
 return res.status(409).json({ 
@@ -75,7 +78,7 @@ return res.status(400).json({ success: false, message: 'OTP has expired' });
 await client.query('UPDATE users SET is_account_verified = true WHERE email = $1', [email]);
 await client.query('UPDATE users SET verify_otp = NULL, verify_otp_expire_at = 0 WHERE email = $1', [email]);
 
-return res.status(200).json({ success: true, message: 'OTP verified successfully' });
+return res.status(200).json({ success: true, message: 'Account verified successfully' });
 
 } catch (err) {
 console.error(err);
