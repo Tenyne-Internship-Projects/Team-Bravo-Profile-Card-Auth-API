@@ -5,7 +5,7 @@ import {
   createOTP,
   setResetOtp, resetPassword
 } from '../model/userModel.js';
-import { generateOTP } from '../utils/Otpgenerator.js';
+import { generateOTP } from '../utils/otpGenerator.js';
 import { sendOTPEmail}  from '../utils/mailer.js';
 import { client } from '../config/connectDb.js';
 import { registerValidator } from '../utils/validation.js';
