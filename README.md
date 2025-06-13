@@ -19,8 +19,8 @@ This is the backend API for the Tenyne authentication and user profile system. I
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Tenyne-Internship-Projects/Tenyne-Internship-Projects-Team-Bravo-Profile-Card-Server2.git
-cd TEAM-BRAVO-PROFILE-CARD-AUTH
+git clone https://github.com/Tenyne-Internship-Projects/Team-Bravo-Profile-Card-Auth-API.git
+cd Team-Bravo-Profile-Card-Auth-API
 ```
 
 ### 2. Install Dependencies
