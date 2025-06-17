@@ -92,7 +92,8 @@ export const login = async (req, res) => {
   const { email, password, rememberMe } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Email and password are required' });
+    return res.status(400).json({ success: false,
+       message: 'Email and password are required' });
   }
 
   try {
@@ -100,6 +101,12 @@ export const login = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    if(!user.is_account_verified){
+      return res.status(401).json({success: false,
+        message: 'Invalid email or password'
+      })
     }
 
     const isMatch = await bcrypt.compare(String(password), String(user.password));
