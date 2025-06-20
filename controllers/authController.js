@@ -48,45 +48,77 @@ sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',}
       };
 
       
+// export const verifyEmail = async (req, res) => {
+// const {  otp } = req.body;
+// if ( !otp)
+// return res.status(400).json({ success: false, message: 'Email or OTP is required' });
+
+// try {
+// const result = await client.query(
+// 'SELECT verify_otp, verify_otp_expire_at FROM users WHERE email = $1',
+// [otp]
+// );
+
+// if (result.rows.length === 0)
+// return res.status(400).json({ success: false, message: 'User not found' });
+
+// const user = result.rows[0];
+
+// if (user.verify_otp !== otp) {
+// return res.status(400).json({ success: false, message: 'Invalid OTP' });
+// }
+
+// const now = Date.now();
+// const expiresAt = Number(user.verify_otp_expire_at);
+
+// if (now > expiresAt) {
+// return res.status(400).json({ success: false, message: 'OTP has expired' });
+// }
+
+// await client.query('UPDATE users SET is_account_verified = true WHERE email = $1', [email]);
+// await client.query('UPDATE users SET verify_otp = NULL, verify_otp_expire_at = 0 WHERE email = $1', [email]);
+
+// return res.status(200).json({ success: true, message: 'Account verified successfully' });
+
+// } catch (err) {
+// console.error(err);
+// res.status(500).json({ success: false, message: 'Server error' });
+// }
+// };
+
 export const verifyEmail = async (req, res) => {
 const {  otp } = req.body;
-if ( !otp)
-return res.status(400).json({ success: false, message: 'Email or OTP is required' });
+  if (!otp) {
+    return res.status(400).json({ success: false, message: 'OTP is required' });
+  }
 
-try {
-const result = await client.query(
-'SELECT verify_otp, verify_otp_expire_at FROM users WHERE email = $1',
-[email]
-);
+  try {
+    const result = await client.query(
+      'SELECT email, verify_otp_expire_at FROM users WHERE verify_otp = $1',
+      [otp]
+    );
 
-if (result.rows.length === 0)
-return res.status(400).json({ success: false, message: 'User not found' });
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+    }
 
-const user = result.rows[0];
+    const user = result.rows[0];
+    const now = Date.now();
+    const expiresAt = Number(user.verify_otp_expire_at);
 
-if (user.verify_otp !== otp) {
-return res.status(400).json({ success: false, message: 'Invalid OTP' });
-}
+    if (now > expiresAt) {
+      return res.status(400).json({ success: false, message: 'OTP has expired' });
+    }
 
-const now = Date.now();
-const expiresAt = Number(user.verify_otp_expire_at);
+    await client.query('UPDATE users SET is_account_verified = true, verify_otp = NULL, verify_otp_expire_at = 0 WHERE verify_otp = $1', [otp]);
 
-if (now > expiresAt) {
-return res.status(400).json({ success: false, message: 'OTP has expired' });
-}
+    return res.status(200).json({ success: true, message: 'Account verified successfully' });
 
-await client.query('UPDATE users SET is_account_verified = true WHERE email = $1', [email]);
-await client.query('UPDATE users SET verify_otp = NULL, verify_otp_expire_at = 0 WHERE email = $1', [email]);
-
-return res.status(200).json({ success: true, message: 'Account verified successfully' });
-
-} catch (err) {
-console.error(err);
-res.status(500).json({ success: false, message: 'Server error' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error'});
 }
 };
-
-
 
 export const login = async (req, res) => {
   const { email, password, rememberMe } = req.body;
