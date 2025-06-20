@@ -236,33 +236,79 @@ export const resetPasswordController = async (req, res) => {
     }
 };
 
-export const resendOtp = async (req, res) => { 
-//   const { email } = req.body;
-//  if (!email) {return res.status(400).json({ success: false, message: 'Email is required' });
-//  }
-try { 
-  const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-  const user = userResult.rows[0];
-if (!user) {return res.status(404).json({ success: false, message: 'User not found' }
+// export const resendOtp = async (req, res) => { 
+// //   const { email } = req.body;
+// //  if (!email) {return res.status(400).json({ success: false, message: 'Email is required' });
+// //  }
+// try { 
+//   const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+//   const user = userResult.rows[0];
+// if (!user) {return res.status(404).json({ success: false, message: 'User not found' }
 
-);}
+// );}
 
-if (user.is_account_verified) { 
-  return res.status(400).json({
-     success: false, message: 'Account is already verified' }); 
+// if (user.is_account_verified) { 
+//   return res.status(400).json({
+//      success: false, message: 'Account is already verified' }); 
+//     }
+
+// const otp = await createOTP(email);
+//    await sendOTPEmail(email, otp);
+//  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins in ms
+//  await client.query(`UPDATE users SET verify_otp = $1, verify_otp_expire_at = $2 WHERE email = $3`,  [otp, expiresAt, email] );
+//  res.status(200).json({
+//   success: true,  message: 'OTP resent successfully', });
+
+// } catch (err) {
+//    console.error('Error resending OTP:', err); 
+//    res.status(500).json({ success: false, message: 'Server error' }); }
+// };
+
+
+export const resendOtp = async (req, res) => {
+  try {
+    const token = req.cookies?.accessToken;
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Unauthorized. Please log in.' });
     }
 
-const otp = await createOTP(email);
-   await sendOTPEmail(email, otp);
- const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins in ms
- await client.query(`UPDATE users SET verify_otp = $1, verify_otp_expire_at = $2 WHERE email = $3`,  [otp, expiresAt, email] );
- res.status(200).json({
-  success: true,  message: 'OTP resent successfully', });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const email = decoded.email; // or decoded.id if you're storing user ID in token
 
-} catch (err) {
-   console.error('Error resending OTP:', err); 
-   res.status(500).json({ success: false, message: 'Server error' }); }
+    const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = userResult.rows[0];
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+      if (user.is_account_verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Account is already verified',
+      });
+    }
+
+    const otp = createOTP(email);
+    await sendOTPEmail(email, otp);
+
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+
+    await client.query(
+      'UPDATE users SET verify_otp = $1, verify_otp_expire_at = $2 WHERE email = $3',
+      [otp, expiresAt, email]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'OTP resent successfully',
+    });
+  } catch (err) {
+    console.error('Error resending OTP:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
 };
-
-
-
