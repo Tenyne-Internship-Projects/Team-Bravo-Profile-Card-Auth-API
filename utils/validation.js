@@ -1,7 +1,8 @@
 import joi from 'joi'
 
 export const registerValidator = joi.object({
-  name:joi.string().min(2).max(100).required(),
+  name:joi.string().min(2).max(100),
+   username:joi.string().alphanum().min(3).max(30).optional().allow('', null),
   email:joi.string().email().required(),
   password:joi.string()
     .pattern(
