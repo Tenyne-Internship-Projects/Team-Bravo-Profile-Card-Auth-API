@@ -25,7 +25,7 @@ app.use(cookieParser());
 // app.use('/auth', oauthRouter);
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://your-frontend-domain.com'], // allow dev + prod
+  origin: ['http://localhost:5173', 'https://team-bravo-profile-card-auth-app.vercel.app'], // allow dev + prod
   credentials: true,
 })); // Adjust origin as needed
 
