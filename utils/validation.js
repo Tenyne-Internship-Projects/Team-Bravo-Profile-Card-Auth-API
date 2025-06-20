@@ -1,7 +1,7 @@
 import joi from 'joi'
 
 export const registerValidator = joi.object({
-  name:joi.string().min(2).max(100),
+  name:joi.string().min(2).max(100).required(),
    username:joi.string().alphanum().min(3).max(30).optional().allow('', null),
   email:joi.string().email().required(),
   password:joi.string()
@@ -13,8 +13,4 @@ export const registerValidator = joi.object({
       'string.pattern.base':
         'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character',
     }),
-  confirmPassword:joi.string()
-    .valid(joi.ref('password'))
-    .required()
-    .messages({ 'any.only': 'Passwords do not match' }),
 });
