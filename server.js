@@ -10,6 +10,7 @@ import  profileRouter  from "./routes/profileRoute.js";
 import swaggerUi from "swagger-ui-express"
 import fs from "fs";
 import yaml from "js-yaml";
+// import oauthRouter from './routes/oauthRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -20,7 +21,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: 'http://localhost:3000' })); // Adjust origin as needed
+
+// app.use('/auth', oauthRouter);
+
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://your-frontend-domain.com'], // allow dev + prod
+  credentials: true,
+})); // Adjust origin as needed
 
 app.use(session({
   secret: 'session_secret_key',
