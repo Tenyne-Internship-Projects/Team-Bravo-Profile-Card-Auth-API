@@ -8,16 +8,15 @@ import {
 import { generateOTP } from '../utils/otpGenerator.js';
 import { sendOTPEmail}  from '../utils/mailer.js';
 import { client } from '../config/connectDb.js';
-import { registerValidator } from '../utils/validation.js';
+// import { registerValidator } from '../utils/validation.js';
 
 
 export const register = async (req, res) => {
-  const {error}=registerValidator.validate(req.body);
-  if (error) {
+  const {name, email, password, confirmPassword}=req.body
+  if (!name || !email || !password || !confirmPassword ) {
 return res.status(400).json({
  success: false, message: error.details[0].message });
 }
-const { name, email, password } = req.body;
 try {
 const existingUser = await getUserByEmail(email);
 if (existingUser) { 
@@ -265,6 +264,7 @@ export const resetPasswordController = async (req, res) => {
 // };
 
 
+
 export const resendOtp = async (req, res) => {
   try {
     const token = req.cookies?.accessToken;
@@ -274,16 +274,17 @@ export const resendOtp = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email; // or decoded.id if you're storing user ID in token
+    const userId = decoded.id;
 
-    const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
     const user = userResult.rows[0];
+    
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-      if (user.is_account_verified) {
+    if (user.is_account_verified) {
       return res.status(400).json({
         success: false,
         message: 'Account is already verified',
@@ -309,6 +310,6 @@ export const resendOtp = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error',
-    });
-  }
+});
+}
 };
