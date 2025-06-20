@@ -49,8 +49,8 @@ sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',}
 
       
 export const verifyEmail = async (req, res) => {
-const { email, otp } = req.body;
-if (!email || !otp)
+const {  otp } = req.body;
+if ( !otp)
 return res.status(400).json({ success: false, message: 'Email or OTP is required' });
 
 try {
@@ -205,9 +205,9 @@ export const resetPasswordController = async (req, res) => {
 };
 
 export const resendOtp = async (req, res) => { 
-  const { email } = req.body;
- if (!email) {return res.status(400).json({ success: false, message: 'Email is required' });
- }
+//   const { email } = req.body;
+//  if (!email) {return res.status(400).json({ success: false, message: 'Email is required' });
+//  }
 try { 
   const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
   const user = userResult.rows[0];
