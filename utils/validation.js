@@ -13,4 +13,8 @@ export const registerValidator = joi.object({
       'string.pattern.base':
         'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character',
     }),
+     confirmPassword:joi.string()
+    .valid(joi.ref('password'))
+    .required()
+    .messages({ 'any.only': 'Passwords do not match' }),
 });
