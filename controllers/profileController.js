@@ -9,9 +9,9 @@ import{
 export const createProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { fullName, email, phone, bio, country, city, skills, avatar_url } = req.body;
+    const { fullName, username, bio, state, email, phone, github, portfolio, country, skills, avatar_url, tools} = req.body;
     
-    const profile = await createProf(userId, fullName, email, phone, bio, country, city, skills, avatar_url);
+    const profile = await createProf(fullName, username, bio, state, email, phone, github, portfolio, country, skills, avatar_url, tools);
     res.status(201).json({ success: true, profile });
     
   } catch (error) {
@@ -48,18 +48,22 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Profile not found' });
     }
     
-    const { fullName, email, phone, bio, country, city, skills, avatar_url } = req.body;
+    const { fullName, username, bio, state, email, phone, github, portfolio, country, skills, avatar_url, tools } = req.body;
     
     const updated = await updateProf(
       userId,
       fullName || existing.name,
-      email|| existing.name,
-      phone|| existing.name,
-      country|| existing.name, 
-      city|| existing.name,
-      skills|| existing.name,
+      username || existing.username,
+      email|| existing.email,
+      phone|| existing.phone,
+      github|| existing.github,
+      portfolio|| existing.portfolio,
+      country|| existing.country, 
+      state || existing.city,
+      skills|| existing.skills,
       bio || existing.bio,
-      avatar_url || existing.avatar_url
+      avatar_url || existing.avatar_url,
+      tools || existing.tools
     );
     
     res.json({ success: true, message: 'Profile updated successfully', profile: updated });
