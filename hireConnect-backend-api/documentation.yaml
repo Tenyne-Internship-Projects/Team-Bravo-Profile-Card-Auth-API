@@ -1,0 +1,492 @@
+openapi: 3.0.0
+info:
+  title: HireConnect API – Team Bravo
+  version: 1.0.0
+  description: |
+    ## Welcome to HireConnect – by Team Bravo 
+
+    HireConnect is a powerful profile and authentication API designed to simplify how developers create, update, and manage professional user profiles.
+
+    ### Authentication Suite
+    - Register users with secure password validation
+    - Email verification with OTP
+    - Login/logout with JWT tokens
+    - Password reset via OTP
+    - Refresh token for seamless session management
+
+    ### Profile Management
+    - Create and update dynamic user profiles
+    - Upload profile avatars and documents
+    - Toggle availability status
+    - Track tech stacks, tools, and skills
+
+    ### Use Cases
+    Ideal for:
+    - Hiring platforms
+    - Developer portfolios
+    - Talent showcasing apps
+    - Resume/document-driven onboarding flows
+
+    ### Built by Team Bravo at Tenyne Innovations Inc.
+    - Designed with developer empathy
+    - Powered by PostgreSQL, Express.js, and Multer
+    - Built with collaboration, clarity, and craft
+
+    > Explore each endpoint below to test, validate, and integrate this API with confidence.
+
+servers:
+  - url: https://team-bravo-profile-card-auth-api.onrender.com/
+
+tags:
+  - name: user
+    description: Manage user activity from register to email verification, login, and password reset
+  - name: profile
+    description: Manage profile-related functions and endpoints
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [user]
+      summary: Register a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Ashaolu Samson
+                email: samsonashaolu16@gmail.com
+                password: zamzamngi123@
+                confirmPassword: Zamzamngi123@
+      responses:
+        "200":
+          description: Successful registration
+          content:
+            application/json: {}
+
+  /api/auth/resend-otp:
+    post:
+      tags: [user]
+      summary: Resend OTP to verify email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: samsonashaolu16@gmail.com
+      responses:
+        "200":
+          description: OTP sent successfully
+          content:
+            application/json: {}
+
+  /api/auth/verify-otp:
+    post:
+      tags: [user]
+      summary: Verify email with OTP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                otp: "546838"
+                email: samsonashaolu16@gmail.com
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json: {}
+
+  /api/auth/login:
+    post:
+      tags: [user]
+      summary: Login user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: samsonashaolu16@gmail.com
+                password: zamzamngi123@
+      responses:
+        "200":
+          description: Logged in successfully
+          content:
+            application/json: {}
+      security:
+        - bearerAuth: []
+
+  /api/auth/logout:
+    post:
+      tags: [user]
+      summary: Logout user
+      description: Clears refresh token cookie and ends session
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Logged out
+        "401":
+          description: Not authenticated
+        "500":
+          description: Server error
+      security:
+        - bearerAuth: []
+
+  /api/auth/forgot-password:
+    post:
+      tags: [user]
+      summary: Send OTP for password reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: samsonashaolu16@gmail.com
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json: {}
+
+  /api/auth/reset-password:
+    post:
+      tags: [user]
+      summary: Reset password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                otp: "415489"
+                email: samsonashaolu16@gmail.com
+                newPassword: zamzammmngi123@
+      responses:
+        "200":
+          description: Password reset successful
+          content:
+            application/json: {}
+
+  /api/auth/refresh-token:
+    post:
+      tags: [user]
+      summary: Refresh access token
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Access token refreshed
+        "401":
+          description: No refresh token provided
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: Refresh token missing
+        "403":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: Invalid refresh token
+
+  /api/auth/google:
+    get:
+      tags: [user]
+      summary: Start Google OAuth login
+      responses:
+        "302":
+          description: Redirect to Google OAuth
+
+  /api/auth/google/callback:
+    get:
+      tags: [user]
+      summary: Google OAuth callback
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Google login successful
+                  accessToken: "<access_token>"
+
+  /api/auth/github:
+    get:
+      tags: [user]
+      summary: Start GitHub OAuth login
+      responses:
+        "302":
+          description: Redirect to GitHub OAuth
+
+  /api/auth/github/callback:
+    get:
+      tags: [user]
+      summary: GitHub OAuth callback
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: GitHub login successful
+                  accessToken: "<access_token>"
+
+  /api/profile/create:
+    post:
+      tags: [profile]
+      summary: Create profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fullName: Ashaolu Samson
+                email: samsonashaolu16@gmail.com
+                phone: "081358702"
+                country: Nevermore
+                city: Nully
+                skills: Staying on point
+                bio: I am a developer with a passion to build software solutions that improve human life.
+      responses:
+        "200":
+          description: Profile created
+          content:
+            application/json: {}
+      security:
+        - bearerAuth: []
+
+  /api/profile/get:
+    get:
+      tags: [profile]
+      summary: Get user profile
+      responses:
+        "200":
+          description: Retrieved profile
+          content:
+            application/json: {}
+      security:
+        - bearerAuth: []
+
+  /api/profile/all:
+    get:
+      tags: [profile]
+      summary: Get all user profiles
+      responses:
+        "200":
+          description: Array of user profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  profiles:
+                    type: array
+                    items:
+                      type: object
+        "500":
+          description: Server error
+
+  /api/profile/update:
+    put:
+      tags: [profile]
+      summary: Update user profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fullName: Ashaolu Samson
+                email: samsonashaolu16@gmail.com
+                phone: "081358702"
+                country: Nevermore
+                city: Nully
+                bio: Developer passionate about building impactful solutions.
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json: {}
+      security:
+        - bearerAuth: []
+
+  /api/profile/availability:
+    put:
+      tags: [profile]
+      summary: Toggle availability status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                availability: available
+      responses:
+        "200":
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Availability updated
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+
+          /api/profile/documents/{file}:
+    delete:
+      tags: [profile]
+      summary: Delete an uploaded document
+      description: Deletes a specific document file associated with the user.
+      parameters:
+        - in: path
+          name: file
+          required: true
+          schema:
+            type: string
+          description: The filename of the document to delete (e.g. `cv1.pdf`)
+      responses:
+        "200":
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Document deleted
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: File not found
+        "401":
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+
+  /api/profile/delete:
+    delete:
+      tags: [profile]
+      summary: Delete user profile
+      responses:
+        "200":
+          description: Profile deleted
+          content:
+            application/json: {}
+      security:
+        - bearerAuth: []
+
+  /api/profile/upload-avatar:
+    post:
+      tags: [profile]
+      summary: Upload or update avatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Avatar uploaded successfully
+                  avatar_url: /uploads/avatars/12345.png
+        "400":
+          description: No file uploaded
+        "401":
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+
+  /api/profile/upload-documents:
+    post:
+      tags: [profile]
+      summary: Upload user documents
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                documents:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Documents uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Documents uploaded
+                  urls:
+                    - /uploads/documents/cv1.pdf
+                    - /uploads/documents/portfolio.docx
+        "400":
+          description: No documents uploaded
+        "401":
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+
+components:
+  schemas: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
