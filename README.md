@@ -37,7 +37,7 @@ You can explore and test all backend endpoints using our official Postman collec
 
    Protected routes with token auth
 
-🛠 How to Use
+ How to Use
 Open the link above
 
 Click "Fork" to add it to your own Postman workspace
