@@ -1,0 +1,38 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [main, team-bravo]
+  pull_request:
+    branches: [main, team-bravo]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: hireConnect-backend-api
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: |
+          npx eslint . || echo "Lint warnings detected, fix them before merging."
+
+      - name: Run tests
+        run: npm test -- --passWithNoTests
