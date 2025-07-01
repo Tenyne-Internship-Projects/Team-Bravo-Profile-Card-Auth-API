@@ -8,23 +8,31 @@ datasource db {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
-  name                String
-  email               String    @unique
-  password            String
-  provider            String    @default("local")
-  refresh_token       String    @default("")
-  email_otp_hash      String?  
-  email_otp_expire_at   DateTime?
-  verify_otp          String    @default("")
-  verify_otp_expire_at BigInt   @default(0)
-  is_account_verified Boolean   @default(false)
-  reset_otp           String    @default("")
-  reset_otp_expire_at BigInt   @default(0)
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @default(now())
-  profile             Profile?
-  otps                Otp[]
+  id                   Int       @id @default(autoincrement())
+  name                 String
+  email                String    @unique
+  password             String
+  provider             String    @default("local")
+  refresh_token        String    @default("")
+  email_otp_hash       String?
+  email_otp_expire_at  DateTime?
+  verify_otp           String    @default("")
+  verify_otp_expire_at BigInt    @default(0)
+  is_account_verified  Boolean   @default(false)
+  reset_otp            String    @default("")
+  reset_otp_expire_at  BigInt    @default(0)
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @default(now())
+  role                 UserRole  @default(CLIENT)
+
+  profile    Profile?
+  otps       Otp[]
+  admin      Admin?
+  recruiter  Recruiter?
+  client     Client?
+  freelancer Freelancer?
+  projects   Project[]   @relation("PostedProjects")
+  favorites  Favorite[]
 }
 
 model Profile {
@@ -37,7 +45,7 @@ model Profile {
   phone        String
   country      String
   state        String
-  city         String 
+  city         String
   github       String   @default("")
   linkedin     String   @default("")
   portfolio    String   @default("")
@@ -59,4 +67,134 @@ model Otp {
   created_at DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id])
   userId     Int?
+}
+
+model Admin {
+  id               Int      @id @default(autoincrement())
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id          Int      @unique
+  position         String   @default("System Administrator")
+  can_manage_users Boolean  @default(true)
+  created_at       DateTime @default(now())
+}
+
+model Client {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id      Int      @unique
+  company_name String
+  website      String   @default("")
+  industry     String   @default("")
+  created_at   DateTime @default(now())
+}
+
+model Freelancer {
+  id               Int             @id @default(autoincrement())
+  user             User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id          Int             @unique
+  hourly_rate      Decimal         @default(0.00) @db.Decimal(10, 2)
+  experience_level ExperienceLevel @default(BEGINNER)
+  skills           String[]
+  bio              String          @default("")
+  portfolio_links  String[]        @default([])
+  applications     Application[]
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+}
+
+model Recruiter {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id      Int      @unique
+  agency_name  String
+  position     String   @default("Talent Acquisition Specialist")
+  company_size String   @default("")
+  verified     Boolean  @default(false)
+  created_at   DateTime @default(now())
+}
+
+model Project {
+  id               Int           @id @default(autoincrement())
+  title            String
+  description      String        @default("")
+  responsibilities String        @default("")
+  requirements     String        @default("")
+  skills           String[]      @default([])
+  min_budget       Int
+  max_budget       Int
+  currency         String        @default("USD")
+  attachments      String[]      @default([])
+  status           ProjectStatus @default(OPEN)
+  created_at       DateTime      @default(now())
+
+  posted_by_id Int
+  posted_by    User          @relation("PostedProjects", fields: [posted_by_id], references: [id], onDelete: Cascade)
+  applications Application[]
+  favorites    Favorite[]
+}
+
+model Application {
+  id           Int        @id @default(autoincrement())
+  job          Project    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId        Int
+  freelancer   Freelancer @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  freelancerId Int
+
+  is_interested           Boolean
+  availability_type       String // e.g., "Full Time", "Part Time"
+  notice_period           String // e.g., "1 week", "2 weeks"
+  timezone                String
+  can_overlap_hours       Boolean
+  expected_salary_hourly  Float?
+  expected_salary_monthly Float?
+
+  project_experience_summary  String?
+  understands_commitment      Boolean
+  ready_for_interview         Boolean
+  comfortable_with_validation Boolean
+  comfortable_with_ai_job     Boolean
+
+  confirmed_data Boolean             @default(false)
+  created_at     DateTime            @default(now())
+  answers        ApplicationAnswer[]
+}
+
+model ApplicationAnswer {
+  id            Int         @id @default(autoincrement())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicationId Int
+  question      String
+  answer        String
+}
+
+model Favorite {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  Int
+  created_at DateTime @default(now())
+
+  @@unique([userId, projectId])
+}
+
+// ENUMS
+
+enum UserRole {
+  ADMIN
+  CLIENT
+  FREELANCER
+  RECRUITER
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
+}
+
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
 }
