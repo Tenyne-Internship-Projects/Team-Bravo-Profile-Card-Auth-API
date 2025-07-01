@@ -62,6 +62,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/auth", oauthRoutes);
+app.use('/api/projects', projectRoutes);
 
 // serve the static uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

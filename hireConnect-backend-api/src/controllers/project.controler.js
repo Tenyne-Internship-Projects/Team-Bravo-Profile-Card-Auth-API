@@ -8,7 +8,7 @@ import {
 
 export const createProject = async (req, res) => {
   try {
-    const project = await createProjectService(req.body, req.user.id);
+    const project = await createProjectService(req.body, req.user.id, req.files);
     res.status(201).json({ success: true, project });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -17,8 +17,19 @@ export const createProject = async (req, res) => {
 
 export const getProjects = async (req, res) => {
   try {
-    const projects = await getAllProjectsService();
-    res.json({ success: true, projects });
+    const { page = 1, limit = 10 } = req.query;
+    const result = await getAllProjectsService(Number(page), Number(limit));
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getProjectById = async (req, res) => {
+  try {
+    const project = await getProjectByIdService(req.params.id);
+    if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
+    res.json({ success: true, project });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -1,76 +1,78 @@
-import { prisma } from "./prismaClient.js";
+import { prisma } from './prismaClient.js';
+import fs from 'fs';
+import path from 'path';
 
-// Create a new project
-export const createProject = async (req, res) => {
-  const { title, description, skills_required, budget, category, technologies } = req.body;
-  try {
-    const project = await prisma.project.create({
-      data: {
-        title,
-        description,
-        skills_required,
-        budget,
-        category,
-        technologies,
-        created_by: req.user.id,
-      },
-    });
-    res.status(201).json({ success: true, project });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+const storeAttachments = (files) => {
+  if (!files || files.length === 0) return [];
+  return files.map(file => `/uploads/${file.filename}`);
 };
 
-// Get all projects
-export const getProjects = async (req, res) => {
-  try {
-    const projects = await prisma.project.findMany();
-    res.json({ success: true, projects });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+export const createProjectService = async (data, userId, files) => {
+  const attachments = storeAttachments(files);
 
-// Update a project
-export const updateProject = async (req, res) => {
-  const { id } = req.params;
-  const { title, description, skills_required, budget, category, technologies } = req.body;
-
-  try {
-    const existing = await prisma.project.findUnique({ where: { id: Number(id) } });
-
-    if (!existing || existing.created_by !== req.user.id) {
-      return res.status(404).json({ success: false, message: 'Project not found or unauthorized' });
+  return prisma.project.create({
+    data: {
+      title: data.title,
+      description: data.description || '',
+      responsibilities: data.responsibilities || '',
+      requirements: data.requirements || '',
+      skills: data.skills || [],
+      min_budget: Number(data.min_budget),
+      max_budget: Number(data.max_budget),
+      currency: data.currency || 'USD',
+      attachments,
+      posted_by_id: userId
     }
-
-    const updated = await prisma.project.update({
-      where: { id: Number(id) },
-      data: {
-        title, description, skills_required, budget, category, technologies,
-        updated_at: new Date(),
-      },
-    });
-
-    res.json({ success: true, project: updated });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+  });
 };
 
-// Delete a project
-export const deleteProject = async (req, res) => {
-  const { id } = req.params;
+export const getAllProjectsService = async (page = 1, limit = 10) => {
+  const [projects, total] = await Promise.all([
+    prisma.project.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { created_at: 'desc' },
+    }),
+    prisma.project.count()
+  ]);
 
-  try {
-    const existing = await prisma.project.findUnique({ where: { id: Number(id) } });
-
-    if (!existing || existing.created_by !== req.user.id) {
-      return res.status(404).json({ success: false, message: 'Project not found or unauthorized' });
+  return {
+    projects,
+    pagination: {
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
     }
+  };
+};
 
-    await prisma.project.delete({ where: { id: Number(id) } });
-    res.json({ success: true, message: 'Project deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+export const getProjectByIdService = async (id) => {
+  return prisma.project.findUnique({
+    where: { id: Number(id) },
+    include: {
+      applications: true,
+      favorites: true
+    }
+  });
+};
+
+export const updateProjectService = async (projectId, userId, data) => {
+  const project = await prisma.project.findUnique({ where: { id: Number(projectId) } });
+  if (!project || project.posted_by_id !== userId) return null;
+
+  return prisma.project.update({
+    where: { id: Number(projectId) },
+    data: {
+      ...data,
+      updated_at: new Date()
+    }
+  });
+};
+
+export const deleteProjectService = async (projectId, userId) => {
+  const project = await prisma.project.findUnique({ where: { id: Number(projectId) } });
+  if (!project || project.posted_by_id !== userId) return null;
+
+  await prisma.project.delete({ where: { id: Number(projectId) } });
+  return true;
 };
