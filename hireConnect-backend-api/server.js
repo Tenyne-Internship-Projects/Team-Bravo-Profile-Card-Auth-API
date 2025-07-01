@@ -13,6 +13,8 @@ import cookieParser from "cookie-parser";
 import authRouter from "./src/routes/authRoutes.js";
 import oauthRoutes from "./src/routes/oauthRoutes.js";
 import profileRouter from "./src/routes/profileRoute.js";
+import projectRouter from "./src/routes/projectRoutes.js";
+import applicationRouter from "./src/routes/applicationRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -62,7 +64,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/auth", oauthRoutes);
-app.use('/api/projects', projectRoutes);
+app.use('/api/projects', projectRouter);
+app.use('/api/:projects', applicationRouter);
 
 // serve the static uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

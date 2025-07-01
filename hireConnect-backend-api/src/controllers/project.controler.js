@@ -1,10 +1,10 @@
-import {
-  createProjectService,
-  getAllProjectsService,
-  getProjectByIdService,
-  updateProjectService,
-  deleteProjectService
-} from '../prisma/projectService.js';
+import { 
+createProjectService,
+getAllProjectsService,
+getProjectByIdService,
+updateProjectService, 
+deleteProjectService
+ } from '../prisma/projectService.js';
 
 export const createProject = async (req, res) => {
   try {
@@ -15,15 +15,16 @@ export const createProject = async (req, res) => {
   }
 };
 
-export const getProjects = async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const result = await getAllProjectsService(Number(page), Number(limit));
-    res.json({ success: true, ...result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+export const getProjects = async (req, res) => { 
+  try { 
+  const {page, limit, keyword, skills, min, max } = req.query; 
+  const filters = { page, limit, keyword, skills, min, max }; 
+  const result = await getAllProjectsService(filters); 
+  res.status(200).json(result); }
+  catch (error) { res.status(500).json({ success: false, message: error.message });
+  } 
 };
+
 
 export const getProjectById = async (req, res) => {
   try {
@@ -35,11 +36,13 @@ export const getProjectById = async (req, res) => {
   }
 };
 
+
+
 export const updateProject = async (req, res) => {
   try {
     const updated = await updateProjectService(req.params.id, req.user.id, req.body);
     if (!updated) {
-      return res.status(403).json({ success: false, message: 'Unauthorized or project not found' });
+      return res.status(403).json({ success: false, message: ' project not found' });
     }
     res.json({ success: true, project: updated });
   } catch (error) {
@@ -51,7 +54,7 @@ export const deleteProject = async (req, res) => {
   try {
     const deleted = await deleteProjectService(req.params.id, req.user.id);
     if (!deleted) {
-      return res.status(403).json({ success: false, message: 'Unauthorized or project not found' });
+      return res.status(403).json({ success: false, message: 'project not found' });
     }
     res.json({ success: true, message: 'Project deleted' });
   } catch (error) {

@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import  requireAuth  from '../middleware/authentication.js';
-import { checkRole } from '../middleware/'; // in progree
+import { checkRole } from '../middleware/roleCheck.js';
 import {
   createProject,
   getProjects,
@@ -9,25 +9,22 @@ import {
   updateProject,
   deleteProject
 } from '../controllers/project.controler.js';
-import { applyToProject } from '../controllers/application.controler.js';
 
-const router = express.Router();
+
+const projectRouter = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
 // PROJECT ROUTES
-router.post(
-  '/',
-  authenticate,
+projectRouter.post('/', requireAuth,
   checkRole(['ADMIN', 'CLIENT', 'RECRUITER', 'FREELANCER']),
-  upload.array('attachments'),
-  createProject
+  upload.array('attachments'), createProject
 );
-router.get('/', getProjects);
-router.get('/:id', getProjectById);
-router.put('/:id', requireAuth, updateProject);
-router.delete('/:id', requireAuth, deleteProject);
+// search generally by keyword and budget or skill
+projectRouter.get('/', getProjects); 
+projectRouter.get('/:id', getProjectById);
+projectRouter.put('/:id', requireAuth, updateProject);
+projectRouter.delete('/:id', requireAuth, deleteProject);
 
-// APPLICATION ROUTE
-router.post('/:projectId/apply', authenticate, checkRole(['FREELANCER']), applyToProject);
 
-export default router;
+
+export default projectRouter;
