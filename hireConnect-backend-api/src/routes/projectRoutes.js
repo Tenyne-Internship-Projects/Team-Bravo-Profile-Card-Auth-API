@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import  requireAuth  from '../middleware/authentication.js';
+import  {requireAuth}  from '../middleware/authentication.js';
 import { checkRole } from '../middleware/roleCheck.js';
 import {
   createProject,

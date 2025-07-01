@@ -1,4 +1,4 @@
-import prisma from './prismaClient';
+import {prisma} from './prismaClient.js';
 import { transporter } from '../utils/mailer.js';
 
 
@@ -27,11 +27,10 @@ export const applyToProjectService = async (projectId, freelancerId, application
  await await transporter.sendMail({
    to: project.posted_by.email,
     subject: 'New Application Received', 
-    text: You received a new application 
-    for your project "${project.title}" from freelancer ID: ${freelancerId}
+    text: `You received a new application 
+    for your project "${project.title}" from freelancer ID: ${freelancerId}`
    });
 
-  return application;},
+  return application;}
 
-};
 
