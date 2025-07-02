@@ -2,7 +2,11 @@ import { prisma } from "./prismaClient.js";
 import bcrypt from "bcrypt";
 import { generateOTP, sendOtpEmail, hashOTP } from "../utils/otp.js";
 
-// 1. Create a new user
+
+//   USER CORE SERVICES
+
+
+// 1️⃣ Create a new user
 export const createUser = async ({ name, email, password }) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -15,14 +19,14 @@ export const createUser = async ({ name, email, password }) => {
   });
 };
 
-// 2. Get user by email
+// 2️⃣ Get user by email
 export const getUserByEmail = async (email) => {
   return prisma.user.findUnique({
     where: { email },
   });
 };
 
-// 3. Create OTP for email verification
+// 3️⃣ Create OTP for email verification
 export const createOTP = async (email) => {
   const otp = generateOTP();
   const otpHash = hashOTP(otp);
@@ -40,7 +44,7 @@ export const createOTP = async (email) => {
   return otp;
 };
 
-// 4. Set OTP and expiration for password reset
+// 4️⃣ Set OTP and expiration for password reset
 export const setResetOtp = async (email, otp, expireAt) => {
   const otpHash = hashOTP(otp);
   return prisma.user.update({
@@ -52,7 +56,7 @@ export const setResetOtp = async (email, otp, expireAt) => {
   });
 };
 
-// 5. Reset password using OTP
+// 5️⃣ Reset password using OTP
 export const resetPassword = async (email, otp, newPassword) => {
   const user = await prisma.user.findUnique({
     where: { email },
@@ -80,7 +84,7 @@ export const resetPassword = async (email, otp, newPassword) => {
   });
 };
 
-// 6. Verify OTP and update account verification status
+// 6️⃣ Verify OTP and update account verification status
 export const verifyUserByOtp = async (email, inputOtp) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
@@ -100,6 +104,73 @@ export const verifyUserByOtp = async (email, inputOtp) => {
       is_account_verified: true,
       email_otp_hash: null,
       email_otp_expire_at: null,
+    },
+  });
+};
+
+
+//   ROLE CREATION SERVICES
+
+
+// 7️⃣ Create Admin
+export const createAdmin = async (userId, position = "System Administrator", canManageUsers = true) => {
+  return prisma.admin.create({
+    data: {
+      user_id: userId,
+      position,
+      can_manage_users: canManageUsers,
+    },
+  });
+};
+
+// 8️⃣ Create Client
+export const createClient = async (userId, companyName, website = "", industry = "") => {
+  return prisma.client.create({
+    data: {
+      user_id: userId,
+      company_name: companyName,
+      website,
+      industry,
+    },
+  });
+};
+
+// 9️⃣ Create Freelancer
+export const createFreelancer = async (
+  userId,
+  hourlyRate = 0.00,
+  experienceLevel = "BEGINNER",
+  skills = [],
+  bio = "",
+  portfolioLinks = []
+) => {
+  return prisma.freelancer.create({
+    data: {
+      user_id: userId,
+      hourly_rate: hourlyRate,
+      experience_level: experienceLevel,
+      skills,
+      bio,
+      portfolio_links: portfolioLinks,
+    },
+  });
+};
+
+// 🔟 Create Recruiter
+export const createRecruiter = async (
+  userId,
+  agencyName,
+  position = "Talent Acquisition Specialist",
+  companySize = "",
+  verified = false
+) => {
+  return prisma.recruiter.create({
+    data: {
+      user_id: userId,
+      agency_name: agencyName,
+      position,
+      company_size: companySize,
+      verified,
     },
   });
 };
