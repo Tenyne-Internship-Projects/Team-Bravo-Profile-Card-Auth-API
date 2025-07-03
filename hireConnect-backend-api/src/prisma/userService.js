@@ -2,7 +2,7 @@ import { prisma } from "./prismaClient.js";
 import bcrypt from "bcrypt";
 import { generateOTP, sendOtpEmail, hashOTP } from "../utils/otp.js";
 
-// 1. Create a new user
+//  Create a new user
 export const createUser = async ({ name, email, password }) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -15,18 +15,18 @@ export const createUser = async ({ name, email, password }) => {
   });
 };
 
-// 2. Get user by email
+//  Get user by email
 export const getUserByEmail = async (email) => {
   return prisma.user.findUnique({
     where: { email },
   });
 };
 
-// 3. Create OTP for email verification
+// Create OTP for email verification
 export const createOTP = async (email) => {
   const otp = generateOTP();
   const otpHash = hashOTP(otp);
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  const expiresAt = new Date(Date.now() + 20 * 60 * 1000);
 
   await prisma.user.update({
     where: { email },
@@ -40,61 +40,60 @@ export const createOTP = async (email) => {
   return otp;
 };
 
-// 4. Set OTP and expiration for reset
+// Set OTP and expiration for password reset
 export const setResetOtp = async (email, otp, expireAt) => {
+  const otpHash = hashOTP(otp);
+
   return prisma.user.update({
     where: { email },
     data: {
-      reset_otp: otp,
-      reset_otp_expire_at: new Date(expireAt * 1000),
+      reset_otp_hash: otpHash,
+      reset_otp_expire_at: new Date(Date.now() + 20 * 60 * 1000),
     },
   });
 };
 
-// 5. Reset password using OTP
-export const resetPassword = async (email, otp, hashedPassword) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      email,
-      reset_otp: otp,
-      reset_otp_expire_at: {
-        gt: new Date(),
-      },
-    },
+//  Reset password using OTP
+export const resetPassword = async (email, otp, newPassword) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
   });
 
-  if (!user) return null;
+  if (
+    !user ||
+    !user.reset_otp_hash ||
+    !user.reset_otp_expire_at ||
+    new Date() > user.reset_otp_expire_at ||
+    hashOTP(otp) !== user.reset_otp_hash
+  ) {
+    return null;
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
 
   return prisma.user.update({
     where: { email },
     data: {
       password: hashedPassword,
-      reset_otp: null,
+      reset_otp_hash: null,
       reset_otp_expire_at: null,
     },
   });
 };
 
-// 6. Verify OTP and update account verification status
+//  Verify OTP and update account verification status
 export const verifyUserByOtp = async (email, inputOtp) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
-  console.log("User:", user);
-  console.log("Provided OTP:", inputOtp);
-  console.log("Stored OTP:", user?.email_otp);
-  console.log("Expires At:", user?.email_otp_expire_at);
-  console.log("Now:", new Date());
-
-  if (!user || !user.email_otp_hash || !user.email_otp_expire_at) {
+  if (
+    !user ||
+    !user.email_otp_hash ||
+    !user.email_otp_expire_at ||
+    new Date() > user.email_otp_expire_at ||
+    hashOTP(inputOtp) !== user.email_otp_hash
+  ) {
     return null;
   }
-
-  const inputHash = hashOTP(inputOtp);
-
-  const isValid =
-    inputHash === user.email_otp_hash && new Date() < user.email_otp_expire_at;
-
-  if (!isValid) return null;
 
   return prisma.user.update({
     where: { email },
@@ -102,6 +101,80 @@ export const verifyUserByOtp = async (email, inputOtp) => {
       is_account_verified: true,
       email_otp_hash: null,
       email_otp_expire_at: null,
+    },
+  });
+};
+
+// ROLE CREATION SERVICES
+
+// Create Admin
+export const createAdmin = async (
+  userId,
+  position = "System Administrator",
+  canManageUsers = true
+) => {
+  return prisma.admin.create({
+    data: {
+      user_id: userId,
+      position,
+      can_manage_users: canManageUsers,
+    },
+  });
+};
+
+// Create Client
+export const createClient = async (
+  userId,
+  companyName,
+  website = "",
+  industry = ""
+) => {
+  return prisma.client.create({
+    data: {
+      user_id: userId,
+      company_name: companyName,
+      website,
+      industry,
+    },
+  });
+};
+
+// Create Freelancer
+export const createFreelancer = async (
+  userId,
+  hourlyRate = 0.0,
+  experienceLevel = "BEGINNER",
+  skills = [],
+  bio = "",
+  portfolioLinks = []
+) => {
+  return prisma.freelancer.create({
+    data: {
+      user_id: userId,
+      hourly_rate: hourlyRate,
+      experience_level: experienceLevel,
+      skills,
+      bio,
+      portfolio_links: portfolioLinks,
+    },
+  });
+};
+
+// Create Recruiter
+export const createRecruiter = async (
+  userId,
+  agencyName,
+  position = "Talent Acquisition Specialist",
+  companySize = "",
+  verified = false
+) => {
+  return prisma.recruiter.create({
+    data: {
+      user_id: userId,
+      agency_name: agencyName,
+      position,
+      company_size: companySize,
+      verified,
     },
   });
 };

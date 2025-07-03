@@ -51,11 +51,7 @@ profileRouter.put(
   updateProfile
 );
 
-profileRouter.delete(
-  "/documents/:filename",
-  requireAuth,
-  deleteDocument
-);
+profileRouter.delete("/documents/:filename", requireAuth, deleteDocument);
 
 profileRouter.delete("/", requireAuth, deleteProfile);
 

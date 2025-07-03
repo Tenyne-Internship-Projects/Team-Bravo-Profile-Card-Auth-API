@@ -21,7 +21,17 @@ export const register = async (req, res) => {
       .json({ success: false, message: error.details[0].message });
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
+
+  //  Role validation
+  const allowedRoles = ["FREELANCER", "CLIENT", "RECRUITER"];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Invalid role selected. Only FREELANCER, CLIENT, or RECRUITER are allowed",
+    });
+  }
 
   try {
     const existingUser = await getUserByEmail(email);
@@ -31,7 +41,7 @@ export const register = async (req, res) => {
         .json({ success: false, message: "User already exists" });
     }
 
-    const user = await createUser({ name, email, password });
+    const user = await createUser({ name, email, password, role });
     const otp = await createOTP(email);
     await sendOTPEmail(email, otp);
 
@@ -42,6 +52,7 @@ export const register = async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "3d",
     });
+
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: 3 * 24 * 60 * 60 * 1000,
@@ -59,6 +70,7 @@ export const register = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
@@ -214,7 +226,7 @@ export const sendResetOtp = async (req, res) => {
       return res.status(400).json({ success: false, message: "No user found" });
 
     const otp = generateOTP();
-    const expireAt = Math.floor(Date.now() / 1000) + 5 * 60;
+    const expireAt = new Date(Date.now() + 20 * 60 * 1000);
     await setResetOtp(email, otp, expireAt);
     await sendOTPEmail(email, otp);
 
@@ -231,8 +243,7 @@ export const resetPasswordController = async (req, res) => {
   }
 
   try {
-    const hashed = await bcrypt.hash(newPassword, 10);
-    const user = await resetPassword(email, otp, hashed);
+    const user = await resetPassword(email, otp, newPassword);
 
     if (!user)
       return res
@@ -263,10 +274,7 @@ export const resendOtp = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Account is already verified" });
 
-    const otp = generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000;
-
-    await createOTP(email, otp, expiresAt);
+    const otp = await createOTP(email);
     await sendOTPEmail(email, otp);
 
     if (process.env.NODE_ENV !== "production") {
