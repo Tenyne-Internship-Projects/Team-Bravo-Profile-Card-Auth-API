@@ -13,6 +13,8 @@ import cookieParser from "cookie-parser";
 import authRouter from "./src/routes/authRoutes.js";
 import oauthRoutes from "./src/routes/oauthRoutes.js";
 import profileRouter from "./src/routes/profileRoute.js";
+import projectRouter from "./src/routes/projectRoutes.js";
+import applicationRouter from "./src/routes/applicationRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -32,6 +34,7 @@ const swaggerDocument = yaml.load(
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(
@@ -61,6 +64,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/projects", projectRouter);
+app.use("/api/", applicationRouter);
 app.use("/api/auth", oauthRoutes);
 
 // serve the static uploads directory
@@ -84,6 +89,5 @@ async function startServer() {
 }
 
 startServer();
-
 
 export default app;

@@ -17,22 +17,26 @@ model User {
   email_otp_hash       String?
   email_otp_expire_at  DateTime?
   verify_otp           String    @default("")
-  verify_otp_expire_at BigInt    @default(0)
+  verify_otp_expire_at DateTime?
   is_account_verified  Boolean   @default(false)
   reset_otp            String    @default("")
-  reset_otp_expire_at  BigInt    @default(0)
+  reset_otp_expire_at  DateTime?
   created_at           DateTime  @default(now())
-  updated_at           DateTime  @default(now())
-  role                 UserRole  @default(CLIENT)
+  updated_at           DateTime  @updatedAt
+  role                 UserRole  @default(FREELANCER)
 
-  profile    Profile?
-  otps       Otp[]
-  admin      Admin?
-  recruiter  Recruiter?
-  client     Client?
-  freelancer Freelancer?
-  projects   Project[]   @relation("PostedProjects")
-  favorites  Favorite[]
+  profile     Profile?
+  otps        Otp[]
+  admin       Admin?
+  recruiter   Recruiter?
+  client      Client?
+  freelancer  Freelancer?
+  projects    Project[]   @relation("PostedProjects")
+  favorites   Favorite[]
+
+  @@index([email])
+  @@index([role])
+  @@index([created_at])
 }
 
 model Profile {
@@ -45,7 +49,7 @@ model Profile {
   phone        String
   country      String
   state        String
-  city         String
+  city         String 
   github       String   @default("")
   linkedin     String   @default("")
   portfolio    String   @default("")
@@ -56,7 +60,7 @@ model Profile {
   avatar_url   String   @default("")
   documents    String[] @default([])
   created_at   DateTime @default(now())
-  updated_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 }
 
 model Otp {
@@ -76,6 +80,7 @@ model Admin {
   position         String   @default("System Administrator")
   can_manage_users Boolean  @default(true)
   created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 }
 
 model Client {
@@ -86,6 +91,7 @@ model Client {
   website      String   @default("")
   industry     String   @default("")
   created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 }
 
 model Freelancer {
@@ -111,6 +117,7 @@ model Recruiter {
   company_size String   @default("")
   verified     Boolean  @default(false)
   created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 }
 
 model Project {
@@ -126,6 +133,7 @@ model Project {
   attachments      String[]      @default([])
   status           ProjectStatus @default(OPEN)
   created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
 
   posted_by_id Int
   posted_by    User          @relation("PostedProjects", fields: [posted_by_id], references: [id], onDelete: Cascade)

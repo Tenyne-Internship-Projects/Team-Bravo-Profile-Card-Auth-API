@@ -21,6 +21,8 @@ export const registerValidator = joi.object({
     .valid(joi.ref("password"))
     .required()
     .messages({ "any.only": "Passwords do not match" }),
+     role: joi.string().valid("FREELANCER", "CLIENT", "RECRUITER", "ADMIN").required(),
+    secret: joi.string().optional() // only needed if role === "ADMIN"
 });
 
 // createProfileValidator

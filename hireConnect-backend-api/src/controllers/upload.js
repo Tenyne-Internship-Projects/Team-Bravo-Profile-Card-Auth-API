@@ -60,14 +60,14 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Upload config with size limit
+// Upload config
 const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
-// Exported middleware
+// Middleware exports
 export const uploadAvatar = upload.single("avatar");
 export const parseDocumentFiles = upload.array("documents", 5);
 
@@ -86,7 +86,6 @@ export const updateAvatar = async (req, res) => {
       .json({ success: false, message: "No file uploaded" });
   }
 
-  // Convert to relative path (e.g., uploads/avatars/xyz.png)
   const relativePath = filePath
     .replace(/^.*?uploads[\\/]/, "uploads/")
     .replace(/\\/g, "/");
