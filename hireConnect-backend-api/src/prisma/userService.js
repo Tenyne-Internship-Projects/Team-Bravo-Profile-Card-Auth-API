@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { generateOTP, sendOtpEmail, hashOTP } from "../utils/otp.js";
 
 //  Create a new user
-export const createUser = async ({ name, email, password }) => {
+export const createUser = async ({ name, email, password, role }) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   return prisma.user.create({
@@ -11,9 +11,11 @@ export const createUser = async ({ name, email, password }) => {
       name,
       email,
       password: hashedPassword,
+      role,
     },
   });
 };
+
 
 //  Get user by email
 export const getUserByEmail = async (email) => {

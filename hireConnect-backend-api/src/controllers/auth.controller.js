@@ -7,6 +7,10 @@ import {
   setResetOtp,
   resetPassword,
   verifyUserByOtp,
+  createAdmin,
+  createClient,
+  createFreelancer,
+  createRecruiter,
 } from "../prisma/userService.js";
 import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
@@ -21,15 +25,23 @@ export const register = async (req, res) => {
       .json({ success: false, message: error.details[0].message });
   }
 
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, secret } = req.body;
 
-  //  Role validation
-  const allowedRoles = ["FREELANCER", "CLIENT", "RECRUITER"];
+  // Role validation
+  const allowedRoles = ["FREELANCER", "CLIENT", "RECRUITER", "ADMIN"];
   if (!allowedRoles.includes(role)) {
     return res.status(400).json({
       success: false,
       message:
-        "Invalid role selected. Only FREELANCER, CLIENT, or RECRUITER are allowed",
+        "Invalid role selected. Only FREELANCER, CLIENT, RECRUITER, or ADMIN are allowed.",
+    });
+  }
+
+  // ADMIN registration security
+  if (role === "ADMIN" && secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized to register as ADMIN",
     });
   }
 
@@ -42,6 +54,12 @@ export const register = async (req, res) => {
     }
 
     const user = await createUser({ name, email, password, role });
+
+    // Create admin profile metadata
+    if (role === "ADMIN") {
+      await createAdmin(user.id, "System Administrator", true);
+    }
+
     const otp = await createOTP(email);
     await sendOTPEmail(email, otp);
 
@@ -71,8 +89,8 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const verifyEmail = async (req, res) => {
+   console.log("[DEBUG] req.body:", req.body); 
   const { email, otp } = req.body;
 
   if (!email || !otp) {
