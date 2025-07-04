@@ -56,7 +56,7 @@ export const setResetOtp = async (email, otp, expireAt) => {
 };
 
 //  Reset password using OTP
-export const resetPassword = async (email, otp, newPassword) {
+export const resetPassword = async (email, otp, newPassword) =>{
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !user.reset_otp || !user.reset_otp_expire_at)
