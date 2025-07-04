@@ -13,12 +13,12 @@ export const transporter = nodemailer.createTransport({
 });
 
 export const sendOTPEmail = async (to, otp) => {
-  console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
-  // await transporter.sendMail({
-  //   from: `"${process.env.SMTP_SENDER_NAME}" <${process.env.SMTP_ADMIN_EMAIL}>`,
-  //   to,
-  //   subject: 'Your OTP Code',
-  //   html: `<p>Your OTP is: <b>${otp}</b>. It will expire in 10 minutes.</p>`,
-  // });
+  // console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
+  await transporter.sendMail({
+    from: `"${process.env.SMTP_SENDER_NAME}" <${process.env.SMTP_ADMIN_EMAIL}>`,
+    to,
+    subject: 'Your OTP Code',
+    html: `<p>Your OTP is: <b>${otp}</b>. It will expire in 10 minutes.</p>`,
+  });
   return;
 };
