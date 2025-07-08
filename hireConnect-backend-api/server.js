@@ -1,4 +1,6 @@
 import express from "express";
+import helmet from "helmet";
+import morgan from "morgan";
 import { prisma } from "./src/prisma/prismaClient.js";
 import session from "express-session";
 import passport from "passport";
@@ -15,14 +17,18 @@ import oauthRoutes from "./src/routes/oauthRoutes.js";
 import profileRouter from "./src/routes/profileRoute.js";
 import projectRouter from "./src/routes/projectRoutes.js";
 import applicationRouter from "./src/routes/applicationRoutes.js";
+import testOtpRoute from "./src/routes/testOtpRoute.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import { fileURLToPath } from "url";
 
+
 const app = express();
 const port = process.env.PORT || 5000;
+
+app.use(helmet()); //  Protects from common HTTP vulnerabilities
 
 // Required if using ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -33,25 +39,44 @@ const swaggerDocument = yaml.load(
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+app.use(morgan("combined")); //  HTTP request logging
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const allowedOrigins = [
+  "http://localhost:5173", // Dev
+  process.env.FRONTEND_URL?.trim(), // Prod from .env
+].filter(Boolean);
+
+console.log("Allowed CORS origins:", allowedOrigins);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://team-bravo-profile-card-auth-app.vercel.app",
-    ], // allow dev + prod
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+         console.error(`Blocked by CORS: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
-); // Adjust origin as needed
+);
 
 app.use(
   session({
-    secret: "session_secret_key",
+    secret: process.env.SESSION_SECRET, 
     resave: false,
     saveUninitialized: true,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", //  only HTTPS in production
+      httpOnly: true,  //  safer: JS can't access the cookie
+      sameSite: "lax", //  CSRF protection
+    },
   })
 );
 
@@ -66,7 +91,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/", applicationRouter);
-app.use("/api/auth", oauthRoutes);
+app.use("/api/oauth", oauthRoutes);
+app.use("/api/test", testOtpRoute);
 
 // serve the static uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

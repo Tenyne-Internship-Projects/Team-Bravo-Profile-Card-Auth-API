@@ -14,7 +14,7 @@ import {
 } from "../prisma/userService.js";
 import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
-import { sendOTPEmail } from "../utils/mailer.js";
+import { sendOTPEmail } from "../utils/otp.js";
 import { registerValidator } from "../utils/validator.js";
 
 export const register = async (req, res) => {
@@ -59,12 +59,10 @@ export const register = async (req, res) => {
     if (role === "ADMIN") {
       await createAdmin(user.id, "System Administrator", true);
     }
-
     const otp = await createOTP(email);
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, user.name);
 
     if (process.env.NODE_ENV !== "production") {
-      console.log(`[DEBUG] OTP for ${email}: ${otp}`);
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -85,12 +83,13 @@ export const register = async (req, res) => {
     });
   } catch (err) {
     console.error("Registration error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    if (process.env.NODE_ENV !== "production") {
+  return res.status(500).json({ success: false, message: err.message });
+  }
   }
 };
 
 export const verifyEmail = async (req, res) => {
-   console.log("[DEBUG] req.body:", req.body); 
   const { email, otp } = req.body;
 
   if (!email || !otp) {
@@ -245,17 +244,20 @@ export const sendResetOtp = async (req, res) => {
 
     const otp = generateOTP();
     const expireAt = new Date(Date.now() + 20 * 60 * 1000);
+
     await setResetOtp(email, otp, expireAt);
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, user.name);
 
     res.json({ success: true, message: "Reset OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+  console.error("sendResetOtp error:", error);
+  res.status(500).json({ success: false, message: error.message });
+}
 };
 
 export const resetPasswordController = async (req, res) => {
   const { email, otp, newPassword } = req.body;
+
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ success: false, message: "Missing details" });
   }
@@ -293,10 +295,9 @@ export const resendOtp = async (req, res) => {
         .json({ success: false, message: "Account is already verified" });
 
     const otp = await createOTP(email);
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, user.name);
 
     if (process.env.NODE_ENV !== "production") {
-      console.log(`[DEBUG] OTP for ${email}: ${otp}`);
     }
 
     return res
