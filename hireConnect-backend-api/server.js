@@ -3,6 +3,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { prisma } from "./src/prisma/prismaClient.js";
 import session from "express-session";
+import pgSession from "connect-pg-simple";
 import passport from "passport";
 import "./src/config/passport.js";
 import cors from "cors";
@@ -33,6 +34,8 @@ app.use(helmet()); //  Protects from common HTTP vulnerabilities
 // Required if using ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const PgSession = pgSession(session);
 
 const swaggerDocument = yaml.load(
   fs.readFileSync("./documentation.yaml", "utf8")
@@ -69,13 +72,16 @@ app.use(
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, 
+    store: new PgSession({
+      conString: process.env.DATABASE_URL, // PostgreSQL URL
+    }),
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", //  only HTTPS in production
-      httpOnly: true,  //  safer: JS can't access the cookie
-      sameSite: "lax", //  CSRF protection
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "lax",
     },
   })
 );
