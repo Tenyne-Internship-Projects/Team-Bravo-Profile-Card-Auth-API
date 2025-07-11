@@ -12,6 +12,7 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
+<<<<<<< HEAD
 export const sendOTPEmail = async (to, otp) => {
   // console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
   await transporter.sendMail({
@@ -22,3 +23,15 @@ export const sendOTPEmail = async (to, otp) => {
   });
   return;
 };
+=======
+if (process.env.NODE_ENV !== "production") {
+  transporter.verify((err, success) => {
+    if (err) {
+      console.error("[MAILER] Transporter setup error:", err);
+    } else {
+      console.log("[MAILER] Transporter is ready to send emails");
+    }
+  });
+}
+
+>>>>>>> main

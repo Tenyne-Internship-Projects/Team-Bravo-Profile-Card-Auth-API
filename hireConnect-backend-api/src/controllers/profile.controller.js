@@ -52,6 +52,8 @@ export const createProfile = async (req, res) => {
 };
 
 // Get profile
+// controllers/profile.controller.js
+
 export const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -64,12 +66,24 @@ export const getProfile = async (req, res) => {
         .json({ success: false, message: "Profile not found" });
     }
 
-    res.json({ success: true, profile });
+    // Sanitize skills and tools into string arrays (if stored as CSV strings)
+    const parsedProfile = {
+      ...profile,
+      skills: profile.skills
+        ? profile.skills.split(",").map((s) => s.trim()).filter(Boolean)
+        : [],
+      tools: profile.tools
+        ? profile.tools.split(",").map((t) => t.trim()).filter(Boolean)
+        : [],
+    };
+
+    res.json({ success: true, profile: parsedProfile });
   } catch (error) {
-    console.error(error);
+    console.error("Error in getProfile:", error);
     res.status(500).json({ success: false, message: "Error getting profile" });
   }
 };
+
 
 // Update profile
 export const updateProfile = async (req, res) => {

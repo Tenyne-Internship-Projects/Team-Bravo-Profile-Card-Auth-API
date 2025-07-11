@@ -1,6 +1,6 @@
 import { prisma } from "./prismaClient.js";
 import bcrypt from "bcrypt";
-import { generateOTP, sendOtpEmail, hashOTP } from "../utils/otp.js";
+import { generateOTP, sendOTPEmail, hashOTP } from "../utils/otp.js";
 
 //  Create a new user
 export const createUser = async ({ name, email, password, role }) => {
@@ -16,7 +16,6 @@ export const createUser = async ({ name, email, password, role }) => {
   });
 };
 
-
 //  Get user by email
 export const getUserByEmail = async (email) => {
   return prisma.user.findUnique({
@@ -30,7 +29,12 @@ export const createOTP = async (email) => {
   const otpHash = hashOTP(otp);
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000);
 
-  await prisma.user.update({
+ if (!otp || !otpHash || !expiresAt || typeof otpHash !== 'string') {
+    console.error("[ERROR] OTP or expiry is invalid");
+    throw new Error("OTP generation failed");
+  }
+
+  const user = await prisma.user.update({
     where: { email },
     data: {
       email_otp_hash: otpHash,
@@ -38,7 +42,7 @@ export const createOTP = async (email) => {
     },
   });
 
-  await sendOtpEmail(email, otp);
+  await sendOTPEmail(email, otp, user.name);
   return otp;
 };
 
@@ -46,18 +50,33 @@ export const createOTP = async (email) => {
 export const setResetOtp = async (email, otp, expireAt) => {
   const otpHash = hashOTP(otp);
 
+  if (!otp || !otpHash || !expireAt || typeof otpHash !== 'string') {
+  console.error("[ERROR] OTP or expiry is invalid in password reset");
+  throw new Error("Failed to hash OTP");
+  }
+
   return prisma.user.update({
     where: { email },
     data: {
+<<<<<<< HEAD
       reset_otp: otpHash,
       reset_otp_expire_at: new Date(Date.now() + 20 * 60 * 1000),
+=======
+      reset_otp_hash: otpHash,
+      reset_otp_expire_at: expireAt,
+>>>>>>> main
     },
   });
 };
 
 //  Reset password using OTP
 export const resetPassword = async (email, otp, newPassword) => {
+<<<<<<< HEAD
   const user = await prisma.user.findUnique({ where: { email } });
+=======
+  const user = await prisma.user.findUnique({
+    where: { email },});
+>>>>>>> main
 
   if (!user) {
     return { success: false, reason: "USER_NOT_FOUND" };
@@ -80,7 +99,12 @@ export const resetPassword = async (email, otp, newPassword) => {
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
+<<<<<<< HEAD
   await prisma.user.update({
+=======
+
+  const updatedUser = await prisma.user.update({
+>>>>>>> main
     where: { email },
     data: {
       password: hashedPassword,
@@ -89,7 +113,11 @@ export const resetPassword = async (email, otp, newPassword) => {
     },
   });
 
+<<<<<<< HEAD
   return { success: true };
+=======
+  return updatedUser;
+>>>>>>> main
 };
 
 
