@@ -20,20 +20,20 @@ model User {
   verify_otp_expire_at DateTime?
   is_account_verified  Boolean   @default(false)
   reset_otp            String    @default("")
-  reset_otp_hash       String? 
+  reset_otp_hash       String?
   reset_otp_expire_at  DateTime?
   created_at           DateTime  @default(now())
   updated_at           DateTime  @updatedAt
   role                 UserRole  @default(FREELANCER)
 
-  profile     Profile?
-  otps        Otp[]
-  admin       Admin?
-  recruiter   Recruiter?
-  client      Client?
-  freelancer  Freelancer?
-  projects    Project[]   @relation("PostedProjects")
-  favorites   Favorite[]
+  profile    Profile?
+  otps       Otp[]
+  admin      Admin?
+  recruiter  Recruiter?
+  client     Client?
+  freelancer Freelancer?
+  projects   Project[]   @relation("PostedProjects")
+  favorites  Favorite[]
 
   @@index([email])
   @@index([role])
@@ -50,7 +50,7 @@ model Profile {
   phone        String
   country      String
   state        String
-  city         String 
+  city         String
   github       String   @default("")
   linkedin     String   @default("")
   portfolio    String   @default("")
@@ -75,13 +75,19 @@ model Otp {
 }
 
 model Admin {
-  id               Int      @id @default(autoincrement())
-  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id          Int      @unique
-  position         String   @default("System Administrator")
-  can_manage_users Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  id               Int     @id @default(autoincrement())
+  user             User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id          Int     @unique
+  position         String  @default("System Administrator")
+  can_manage_users Boolean @default(true)
+
+  // NEW FIELDS
+  avatar     String? // optional avatar/logo
+  department String? // optional admin department
+  bio        String? // short description/bio
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model Client {
@@ -89,8 +95,11 @@ model Client {
   user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id      Int      @unique
   company_name String
+  logo         String? //  new: company logo (path to file)
+  description  String? //  new: about the company
   website      String   @default("")
   industry     String   @default("")
+  location     String? //  new: city/country
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 }
@@ -110,15 +119,22 @@ model Freelancer {
 }
 
 model Recruiter {
-  id           Int      @id @default(autoincrement())
-  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id      Int      @unique
+  id           Int     @id @default(autoincrement())
+  user         User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id      Int     @unique
   agency_name  String
-  position     String   @default("Talent Acquisition Specialist")
-  company_size String   @default("")
-  verified     Boolean  @default(false)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  position     String  @default("Talent Acquisition Specialist")
+  company_size String  @default("")
+  verified     Boolean @default(false)
+
+  // NEW FIELDS
+  avatar      String? // optional profile image
+  logo        String? // optional agency logo
+  location    String? // optional city/country
+  description String? // about agency
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model Project {

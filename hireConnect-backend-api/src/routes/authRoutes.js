@@ -8,8 +8,10 @@ import {
   verifyEmail,
   resendOtp,
   refreshToken,
+  isAuth,
 } from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/authentication.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 import { loginRateLimiter } from "../middleware/rateLimit.js";
 import { validate } from "../middleware/validate.js";
 import { registerValidator } from "../utils/validator.js";
@@ -17,12 +19,13 @@ import { prisma } from "../prisma/prismaClient.js";
 
 const authRouter = express.Router();
 
+authRouter.get("/is-auth", requireAuth, isAuth);
 authRouter.post("/register", validate(registerValidator), register);
 authRouter.post("/resend-otp", resendOtp);
 authRouter.post("/verify-otp", verifyEmail);
 authRouter.post("/login", loginRateLimiter, login);
 authRouter.post("/logout", logout);
-authRouter.post("/refresh-token", refreshToken);
+authRouter.post("/refresh-token", verifyToken, refreshToken);
 authRouter.post("/forgot-password", sendResetOtp);
 authRouter.post("/reset-password", resetPasswordController);
 
@@ -34,7 +37,7 @@ authRouter.get("/debug-reset-otp/:email", async (req, res) => {
       where: { email },
       select: {
         email: true,
-        reset_otp: true,
+        reset_otp_hash: true,
         reset_otp_expire_at: true,
       },
     });

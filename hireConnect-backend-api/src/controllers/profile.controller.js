@@ -316,3 +316,38 @@ export const updateAvailability = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const getUserDataController = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        is_account_verified: true,
+        created_at: true,
+        profile: true,
+        freelancer: true,
+        client: true,
+        recruiter: true,
+        admin: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.json({ success: true, userData: user });
+  } catch (err) {
+    console.error("getUserData error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

@@ -15,6 +15,12 @@ const upload = multer({ dest: "uploads/" });
 
 // PROJECT ROUTES
 
+// Get all projects (with filters like keyword, budget, skills)
+projectRouter.get("/", getProjectsController);
+
+// Get a single project by ID
+projectRouter.get("/:id", getProjectByIdController);
+
 // Create a new project (with file attachments)
 projectRouter.post(
   "/",
@@ -23,12 +29,6 @@ projectRouter.post(
   upload.array("attachments"),
   createProjectController
 );
-
-// Get all projects (with filters like keyword, budget, skills)
-projectRouter.get("/", getProjectsController);
-
-// Get a single project by ID
-projectRouter.get("/:id", getProjectByIdController);
 
 // Update a project (protected + role check)
 projectRouter.put(

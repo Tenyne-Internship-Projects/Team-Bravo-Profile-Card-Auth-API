@@ -18,13 +18,15 @@ import oauthRoutes from "./src/routes/oauthRoutes.js";
 import profileRouter from "./src/routes/profileRoute.js";
 import projectRouter from "./src/routes/projectRoutes.js";
 import applicationRouter from "./src/routes/applicationRoutes.js";
+import adminProfileRoutes from "./src/routes/adminProfileRoutes.js";
+import clientProfileRoutes from "./src/routes/clientProfileRoutes.js";
+import recruiterProfileRoutes from "./src/routes/recruiterProfileRoutes.js";
 import testOtpRoute from "./src/routes/testOtpRoute.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "js-yaml";
 import path from "path";
 import { fileURLToPath } from "url";
-
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -62,7 +64,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-         console.error(`Blocked by CORS: ${origin}`);
+        console.error(`Blocked by CORS: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -96,8 +98,11 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/projects", projectRouter);
-app.use("/api/", applicationRouter);
 app.use("/api/oauth", oauthRoutes);
+app.use("/api/", applicationRouter);
+app.use("/api/", adminProfileRoutes);
+app.use("/api/", clientProfileRoutes);
+app.use("/api/", recruiterProfileRoutes);
 app.use("/api/test", testOtpRoute);
 
 // serve the static uploads directory
