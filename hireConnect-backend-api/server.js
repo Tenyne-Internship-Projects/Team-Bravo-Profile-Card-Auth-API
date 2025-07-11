@@ -15,6 +15,7 @@ import oauthRoutes from "./src/routes/oauthRoutes.js";
 import profileRouter from "./src/routes/profileRoute.js";
 import projectRouter from "./src/routes/projectRoutes.js";
 import applicationRouter from "./src/routes/applicationRoutes.js";
+import metricsRoutes from "./src/routes/metricsRoutes.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "js-yaml";
@@ -67,6 +68,7 @@ app.use("/api/profile", profileRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/", applicationRouter);
 app.use("/api/auth", oauthRoutes);
+app.use("/api", metricsRoutes);
 
 // serve the static uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

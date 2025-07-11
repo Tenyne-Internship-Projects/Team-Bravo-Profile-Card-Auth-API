@@ -256,21 +256,31 @@ export const sendResetOtp = async (req, res) => {
 
 export const resetPasswordController = async (req, res) => {
   const { email, otp, newPassword } = req.body;
+
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ success: false, message: "Missing details" });
   }
 
   try {
-    const user = await resetPassword(email, otp, newPassword);
+    const result = await resetPassword(email, otp, newPassword);
 
-    if (!user)
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired OTP" });
+    if (!result.success) {
+      const errorMessages = {
+        USER_NOT_FOUND: "User not found",
+        NO_OTP_REQUESTED: "No OTP was requested",
+        OTP_EXPIRED: "OTP has expired",
+        INVALID_OTP: "Invalid OTP",
+      };
+      return res.status(400).json({
+        success: false,
+        message: errorMessages[result.reason] || "Password reset failed",
+      });
+    }
 
-    res.json({ success: true, message: "Password reset successfully" });
+    return res.json({ success: true, message: "Password reset successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Reset error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
