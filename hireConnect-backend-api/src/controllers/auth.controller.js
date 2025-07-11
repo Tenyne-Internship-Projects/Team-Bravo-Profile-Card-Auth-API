@@ -7,10 +7,14 @@ import {
   setResetOtp,
   resetPassword,
   verifyUserByOtp,
+  createAdmin,
+  createClient,
+  createFreelancer,
+  createRecruiter,
 } from "../prisma/userService.js";
 import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
-import { sendOTPEmail } from "../utils/mailer.js";
+import { sendOTPEmail } from "../utils/otp.js";
 import { registerValidator } from "../utils/validator.js";
 
 export const register = async (req, res) => {
@@ -21,7 +25,25 @@ export const register = async (req, res) => {
       .json({ success: false, message: error.details[0].message });
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, role, secret } = req.body;
+
+  // Role validation
+  const allowedRoles = ["FREELANCER", "CLIENT", "RECRUITER", "ADMIN"];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Invalid role selected. Only FREELANCER, CLIENT, RECRUITER, or ADMIN are allowed.",
+    });
+  }
+
+  // ADMIN registration security
+  if (role === "ADMIN" && secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized to register as ADMIN",
+    });
+  }
 
   try {
     const existingUser = await getUserByEmail(email);
@@ -31,17 +53,32 @@ export const register = async (req, res) => {
         .json({ success: false, message: "User already exists" });
     }
 
-    const user = await createUser({ name, email, password });
+    const user = await createUser({ name, email, password, role });
+
+    // Create role-specific profile
+    if (role === "ADMIN") {
+      await createAdmin(user.id, "System Administrator", true);
+    }
+    if (role === "CLIENT") {
+      await createClient(user.id);
+    }
+    if (role === "FREELANCER") {
+      await createFreelancer(user.id);
+    }
+    if (role === "RECRUITER") {
+      await createRecruiter(user.id);
+    }
+
     const otp = await createOTP(email);
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, user.name);
 
     if (process.env.NODE_ENV !== "production") {
-      console.log(`[DEBUG] OTP for ${email}: ${otp}`);
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "3d",
     });
+
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: 3 * 24 * 60 * 60 * 1000,
@@ -56,7 +93,9 @@ export const register = async (req, res) => {
     });
   } catch (err) {
     console.error("Registration error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    if (process.env.NODE_ENV !== "production") {
+      return res.status(500).json({ success: false, message: err.message });
+    }
   }
 };
 
@@ -214,25 +253,27 @@ export const sendResetOtp = async (req, res) => {
       return res.status(400).json({ success: false, message: "No user found" });
 
     const otp = generateOTP();
-    const expireAt = Math.floor(Date.now() / 1000) + 5 * 60;
+    const expireAt = new Date(Date.now() + 20 * 60 * 1000);
+
     await setResetOtp(email, otp, expireAt);
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp, user.name);
 
     res.json({ success: true, message: "Reset OTP sent to email" });
   } catch (error) {
+    console.error("sendResetOtp error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const resetPasswordController = async (req, res) => {
   const { email, otp, newPassword } = req.body;
+
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ success: false, message: "Missing details" });
   }
 
   try {
-    const hashed = await bcrypt.hash(newPassword, 10);
-    const user = await resetPassword(email, otp, hashed);
+    const user = await resetPassword(email, otp, newPassword);
 
     if (!user)
       return res
@@ -263,14 +304,10 @@ export const resendOtp = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Account is already verified" });
 
-    const otp = generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000;
-
-    await createOTP(email, otp, expiresAt);
-    await sendOTPEmail(email, otp);
+    const otp = await createOTP(email);
+    await sendOTPEmail(email, otp, user.name);
 
     if (process.env.NODE_ENV !== "production") {
-      console.log(`[DEBUG] OTP for ${email}: ${otp}`);
     }
 
     return res
@@ -278,6 +315,20 @@ export const resendOtp = async (req, res) => {
       .json({ success: true, message: "OTP resent successfully" });
   } catch (err) {
     console.error("Error resending OTP:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const isAuth = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Just a minimal check — useful for frontend auth guards
+    return res.json({ success: true });
+  } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };

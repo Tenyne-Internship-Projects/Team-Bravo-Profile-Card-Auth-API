@@ -2,6 +2,7 @@ import express from "express";
 import { requireAuth } from "../middleware/authentication.js";
 import { requireRole } from "../middleware/authorization.js";
 import { validate } from "../middleware/validate.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 import {
   createProfile,
@@ -12,6 +13,7 @@ import {
   updateAvailability,
   deleteDocument,
   uploadDocuments,
+  getUserDataController,
 } from "../controllers/profile.controller.js";
 
 import {
@@ -51,11 +53,9 @@ profileRouter.put(
   updateProfile
 );
 
-profileRouter.delete(
-  "/documents/:filename",
-  requireAuth,
-  deleteDocument
-);
+profileRouter.get("/data", requireAuth, getUserDataController);
+
+profileRouter.delete("/documents/:filename", requireAuth, deleteDocument);
 
 profileRouter.delete("/", requireAuth, deleteProfile);
 

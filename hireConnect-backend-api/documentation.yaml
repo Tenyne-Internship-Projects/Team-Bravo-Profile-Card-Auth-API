@@ -42,6 +42,10 @@ tags:
     description: Manage user activity from register to email verification, login, and password reset
   - name: profile
     description: Manage profile-related functions and endpoints
+  - name: projects
+    description: Project creation, updates, listings and deletions
+  - name: applications
+    description: Apply to posted projects as a freelancer
 
 paths:
   /api/auth/register:
@@ -62,7 +66,24 @@ paths:
         "200":
           description: Successful registration
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: User registered successfully
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/resend-otp:
     post:
@@ -113,11 +134,27 @@ paths:
                 password: zamzamngi123@
       responses:
         "200":
-          description: Logged in successfully
+          description: Successful login
           content:
-            application/json: {}
-      security:
-        - bearerAuth: []
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: Login successful
+                  token: "JWT_TOKEN"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/logout:
     post:
@@ -125,21 +162,27 @@ paths:
       summary: Logout user
       description: Clears refresh token cookie and ends session
       responses:
-        "200":
-          description: Logout successful
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: true
-                  message: Logged out
-        "401":
-          description: Not authenticated
-        "500":
-          description: Server error
-      security:
-        - bearerAuth: []
+      "200":
+        description: Successful logout
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                success: true
+                message: User logged out successfully
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/forgot-password:
     post:
@@ -172,43 +215,54 @@ paths:
                 email: samsonashaolu16@gmail.com
                 newPassword: zamzammmngi123@
       responses:
-        "200":
-          description: Password reset successful
-          content:
-            application/json: {}
+      "200":
+        description: Reset email sent
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                success: true
+                message: Password reset email sent
+      "400":
+        description: Invalid input or email
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/refresh-token:
     post:
       tags: [user]
       summary: Refresh access token
       responses:
-        "200":
-          description: Token refreshed
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: true
-                  message: Access token refreshed
-        "401":
-          description: No refresh token provided
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: false
-                  message: Refresh token missing
-        "403":
-          description: Invalid or expired refresh token
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: false
-                  message: Invalid refresh token
+      "200":
+        description: Token refreshed successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                success: true
+                accessToken: NEW_JWT_TOKEN
+      "401":
+        description: Invalid or expired token
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
   /api/auth/google:
     get:
@@ -277,11 +331,29 @@ paths:
                 bio: I am a developer with a passion to build software solutions that improve human life.
       responses:
         "200":
-          description: Profile created
+          description: Project created successfully
           content:
-            application/json: {}
-      security:
-        - bearerAuth: []
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/profile/get:
     get:
@@ -333,12 +405,27 @@ paths:
                 city: Nully
                 bio: Developer passionate about building impactful solutions.
       responses:
-        "200":
-          description: Profile updated
-          content:
-            application/json: {}
-      security:
-        - bearerAuth: []
+      "200":
+        description: Profile updated
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                success: true
+                message: Profile updated successfully
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
   /api/profile/availability:
     put:
@@ -352,21 +439,27 @@ paths:
               example:
                 availability: available
       responses:
-        "200":
-          description: Availability updated
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: true
-                  message: Availability updated
-        "400":
-          description: Invalid input
-        "401":
-          description: Unauthorized
-      security:
-        - bearerAuth: []
+      "200":
+        description: Availability updated
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                success: true
+                message: Availability status updated
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
 
           /api/profile/documents/{file}:
     delete:
@@ -484,9 +577,291 @@ paths:
       security:
         - bearerAuth: []
 
+  /projects/{projectId}/apply:
+    post:
+      tags: [Applications]
+      summary: Apply to a project
+      description: Allows a freelancer to apply to a specific project by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          description: ID of the project to apply to
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                coverLetter:
+                  type: string
+                  example: "I am highly skilled in..."
+                resumeLink:
+                  type: string
+                  format: uri
+                  example: "https://example.com/resume.pdf"
+              required:
+                - coverLetter
+      responses:
+      "200":
+        description: Application submitted
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationResponse"
+      "400":
+        description: Invalid application data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+  /projects:
+    post:
+      tags: [Projects]
+      summary: Create a new project
+      description: Authenticated users can create a project with optional attachments.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                budget:
+                  type: number
+                skills:
+                  type: string
+                  example: "JavaScript, Node.js"
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - title
+                - description
+      responses:
+      "200":
+        description: Project created
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectResponse"
+      "400":
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+      "500":
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags: [Projects]
+      summary: Get all projects
+      description: Public endpoint to fetch all projects with optional filters.
+      parameters:
+        - in: query
+          name: keyword
+          schema:
+            type: string
+        - in: query
+          name: budgetMin
+          schema:
+            type: number
+        - in: query
+          name: budgetMax
+          schema:
+            type: number
+        - in: query
+          name: skills
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of projects
+
+  /projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get a project by ID
+      description: Retrieve a single project by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project details
+        "404":
+          description: Project not found
+
+    put:
+      tags: [Projects]
+      summary: Update a project
+      description: Update a project by ID (must be authorized and role-matched).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                budget:
+                  type: number
+                skills:
+                  type: string
+      responses:
+        "200":
+          description: Project updated
+        "400":
+          description: Bad request
+        "403":
+          description: Forbidden
+        "401":
+          description: Unauthorized
+
+    delete:
+      tags: [Projects]
+      summary: Delete a project
+      description: Delete a project by ID (must be authorized).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project deleted
+        "403":
+          description: Forbidden
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
 components:
-  schemas: {}
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ProjectInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Build a freelancer dashboard
+        description:
+          type: string
+          example: Need a frontend + backend dashboard for managing freelancer profiles.
+        budget:
+          type: number
+          example: 1500
+        skills:
+          type: string
+          example: "React, Node.js, PostgreSQL"
+
+    ApplicationInput:
+      type: object
+      properties:
+        coverLetter:
+          type: string
+          example: "I'm excited to apply for this role because..."
+        resumeLink:
+          type: string
+          format: uri
+          example: "https://example.com/resume.pdf"
+
+    ProjectResponse:
+      allOf:
+        - $ref: "#/components/schemas/ProjectInput"
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 42
+            created_at:
+              type: string
+              format: date-time
+
+    ApplicationResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApplicationInput"
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 101
+            projectId:
+              type: integer
+              example: 42
+            freelancerId:
+              type: integer
+              example: 8
+            created_at:
+              type: string
+              format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Unauthorized access
