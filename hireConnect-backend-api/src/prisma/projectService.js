@@ -12,13 +12,21 @@ const storeAttachments = (files) => {
 export const createProject = async (data, userId, files) => {
   const attachments = storeAttachments(files);
 
+  //  Normalize skills to always be an array
+  let normalizedSkills = [];
+  if (Array.isArray(data.skills)) {
+    normalizedSkills = data.skills;
+  } else if (typeof data.skills === "string") {
+    normalizedSkills = [data.skills];
+  }
+
   return prisma.project.create({
     data: {
       title: data.title,
       description: data.description || "",
       responsibilities: data.responsibilities || "",
       requirements: data.requirements || "",
-      skills: data.skills || [],
+      skills: normalizedSkills,
       min_budget: Number(data.min_budget),
       max_budget: Number(data.max_budget),
       currency: data.currency || "USD",

@@ -55,10 +55,20 @@ export const register = async (req, res) => {
 
     const user = await createUser({ name, email, password, role });
 
-    // Create admin profile metadata
+    // Create role-specific profile
     if (role === "ADMIN") {
       await createAdmin(user.id, "System Administrator", true);
     }
+    if (role === "CLIENT") {
+      await createClient(user.id);
+    }
+    if (role === "FREELANCER") {
+      await createFreelancer(user.id);
+    }
+    if (role === "RECRUITER") {
+      await createRecruiter(user.id);
+    }
+
     const otp = await createOTP(email);
     await sendOTPEmail(email, otp, user.name);
 
@@ -84,8 +94,8 @@ export const register = async (req, res) => {
   } catch (err) {
     console.error("Registration error:", err);
     if (process.env.NODE_ENV !== "production") {
-  return res.status(500).json({ success: false, message: err.message });
-  }
+      return res.status(500).json({ success: false, message: err.message });
+    }
   }
 };
 
@@ -250,9 +260,9 @@ export const sendResetOtp = async (req, res) => {
 
     res.json({ success: true, message: "Reset OTP sent to email" });
   } catch (error) {
-  console.error("sendResetOtp error:", error);
-  res.status(500).json({ success: false, message: error.message });
-}
+    console.error("sendResetOtp error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 export const resetPasswordController = async (req, res) => {
@@ -305,6 +315,20 @@ export const resendOtp = async (req, res) => {
       .json({ success: true, message: "OTP resent successfully" });
   } catch (err) {
     console.error("Error resending OTP:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const isAuth = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Just a minimal check — useful for frontend auth guards
+    return res.json({ success: true });
+  } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
