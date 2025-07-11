@@ -58,25 +58,15 @@ export const setResetOtp = async (email, otp, expireAt) => {
   return prisma.user.update({
     where: { email },
     data: {
-<<<<<<< HEAD
-      reset_otp: otpHash,
-      reset_otp_expire_at: new Date(Date.now() + 20 * 60 * 1000),
-=======
       reset_otp_hash: otpHash,
       reset_otp_expire_at: expireAt,
->>>>>>> main
     },
   });
 };
 
 //  Reset password using OTP
 export const resetPassword = async (email, otp, newPassword) => {
-<<<<<<< HEAD
   const user = await prisma.user.findUnique({ where: { email } });
-=======
-  const user = await prisma.user.findUnique({
-    where: { email },});
->>>>>>> main
 
   if (!user) {
     return { success: false, reason: "USER_NOT_FOUND" };
@@ -99,12 +89,8 @@ export const resetPassword = async (email, otp, newPassword) => {
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-<<<<<<< HEAD
-  await prisma.user.update({
-=======
 
   const updatedUser = await prisma.user.update({
->>>>>>> main
     where: { email },
     data: {
       password: hashedPassword,
@@ -113,11 +99,7 @@ export const resetPassword = async (email, otp, newPassword) => {
     },
   });
 
-<<<<<<< HEAD
-  return { success: true };
-=======
   return updatedUser;
->>>>>>> main
 };
 
 
