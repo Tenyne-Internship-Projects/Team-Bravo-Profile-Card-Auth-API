@@ -103,7 +103,9 @@ export const deleteProject = async (id, userId) => {
     where: { id: Number(id) },
   });
 
-  if (!existing || existing.posted_by_id !== userId) return null;
+  if (!existing || existing.posted_by_id !== userId) {
+    return false;
+  };
 
   await prisma.project.delete({
     where: { id: Number(id) },

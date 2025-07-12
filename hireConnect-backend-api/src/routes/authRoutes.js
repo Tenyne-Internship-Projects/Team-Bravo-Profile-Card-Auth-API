@@ -26,7 +26,7 @@ authRouter.post("/refresh-token", refreshToken);
 authRouter.post("/forgot-password", sendResetOtp);
 authRouter.post("/reset-password", resetPasswordController);
 
-// ✅ Updated debug route using Prisma
+// Updated debug route using Prisma
 authRouter.get("/debug-reset-otp/:email", async (req, res) => {
   const { email } = req.params;
   try {

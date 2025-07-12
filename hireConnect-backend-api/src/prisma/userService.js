@@ -1,6 +1,6 @@
 import { prisma } from "./prismaClient.js";
 import bcrypt from "bcrypt";
-import { generateOTP, sendOtpEmail, hashOTP } from "../utils/otp.js";
+import { generateOTP, sendOTPEmail, hashOTP } from "../utils/otp.js";
 
 //  Create a new user
 export const createUser = async ({ name, email, password, role }) => {
@@ -16,7 +16,6 @@ export const createUser = async ({ name, email, password, role }) => {
   });
 };
 
-
 //  Get user by email
 export const getUserByEmail = async (email) => {
   return prisma.user.findUnique({
@@ -30,7 +29,12 @@ export const createOTP = async (email) => {
   const otpHash = hashOTP(otp);
   const expiresAt = new Date(Date.now() + 20 * 60 * 1000);
 
-  await prisma.user.update({
+ if (!otp || !otpHash || !expiresAt || typeof otpHash !== 'string') {
+    console.error("[ERROR] OTP or expiry is invalid");
+    throw new Error("OTP generation failed");
+  }
+
+  const user = await prisma.user.update({
     where: { email },
     data: {
       email_otp_hash: otpHash,
@@ -38,7 +42,7 @@ export const createOTP = async (email) => {
     },
   });
 
-  await sendOtpEmail(email, otp);
+  await sendOTPEmail(email, otp, user.name);
   return otp;
 };
 
@@ -46,42 +50,58 @@ export const createOTP = async (email) => {
 export const setResetOtp = async (email, otp, expireAt) => {
   const otpHash = hashOTP(otp);
 
+  if (!otp || !otpHash || !expireAt || typeof otpHash !== 'string') {
+  console.error("[ERROR] OTP or expiry is invalid in password reset");
+  throw new Error("Failed to hash OTP");
+  }
+
   return prisma.user.update({
     where: { email },
     data: {
       reset_otp_hash: otpHash,
-      reset_otp_expire_at: new Date(Date.now() + 20 * 60 * 1000),
+      reset_otp_expire_at: expireAt,
     },
   });
 };
 
 //  Reset password using OTP
 export const resetPassword = async (email, otp, newPassword) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  const user = await prisma.user.findUnique({ where: { email } });
 
-  if (
-    !user ||
-    !user.reset_otp_hash ||
-    !user.reset_otp_expire_at ||
-    new Date() > user.reset_otp_expire_at ||
-    hashOTP(otp) !== user.reset_otp_hash
-  ) {
-    return null;
+  if (!user) {
+    return { success: false, reason: "USER_NOT_FOUND" };
+  }
+
+  const { reset_otp, reset_otp_expire_at } = user;
+
+  if (!reset_otp || !reset_otp_expire_at) {
+    return { success: false, reason: "NO_OTP_REQUESTED" };
+  }
+
+  const isOtpExpired = new Date(reset_otp_expire_at) < new Date();
+  if (isOtpExpired) {
+    return { success: false, reason: "OTP_EXPIRED" };
+  }
+
+  const isOtpValid = await bcrypt.compare(otp, reset_otp);
+  if (!isOtpValid) {
+    return { success: false, reason: "INVALID_OTP" };
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  return prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { email },
     data: {
       password: hashedPassword,
-      reset_otp_hash: null,
+      reset_otp: null,
       reset_otp_expire_at: null,
     },
   });
+
+  return updatedUser;
 };
+
 
 //  Verify OTP and update account verification status
 export const verifyUserByOtp = async (email, inputOtp) => {

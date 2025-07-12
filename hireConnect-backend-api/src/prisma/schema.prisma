@@ -20,6 +20,7 @@ model User {
   verify_otp_expire_at DateTime?
   is_account_verified  Boolean   @default(false)
   reset_otp            String    @default("")
+  reset_otp_hash       String? 
   reset_otp_expire_at  DateTime?
   created_at           DateTime  @default(now())
   updated_at           DateTime  @updatedAt
