@@ -76,12 +76,12 @@ export const register = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "3d",
+      expiresIn: "1h",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
-      maxAge: 3 * 24 * 60 * 60 * 1000,
+      maxAge: 60 * 60 * 1000,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     });
@@ -89,7 +89,13 @@ export const register = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User registered. OTP sent to email.",
-      user,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: false,
+      },
     });
   } catch (err) {
     console.error("Registration error:", err);
@@ -171,14 +177,20 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 60 * 60 * 1000, // 1h
     });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
-      accessToken,
       user: {
         id: user.id,
         email: user.email,

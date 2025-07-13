@@ -55,13 +55,21 @@ export const setResetOtp = async (email, otp, expireAt) => {
     throw new Error("Failed to hash OTP");
   }
 
-  return prisma.user.update({
-    where: { email },
-    data: {
-      reset_otp_hash: otpHash,
-      reset_otp_expire_at: expireAt,
-    },
-  });
+  try {
+    const updated = await prisma.user.update({
+      where: { email },
+      data: {
+        reset_otp_hash: otpHash,
+        reset_otp_expire_at: expireAt,
+      },
+    });
+
+    console.log("[setResetOtp] OTP set for:", updated.email);
+    return updated;
+  } catch (err) {
+    console.error("[setResetOtp ERROR]", err);
+    throw err;
+  }
 };
 
 //  Reset password using OTP
@@ -69,6 +77,11 @@ export const resetPassword = async (email, otp, newPassword) => {
   const user = await prisma.user.findUnique({
     where: { email },
   });
+
+  console.log("[DEBUG] Input OTP:", otp);
+  console.log("[DEBUG] Hashed Input:", hashOTP(otp));
+  console.log("[DEBUG] Stored Hash:", user.reset_otp_hash);
+  console.log("[DEBUG] Expiry:", user.reset_otp_expire_at, "Now:", new Date());
 
   if (
     !user ||

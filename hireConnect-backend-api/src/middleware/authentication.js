@@ -5,7 +5,7 @@ export const requireAuth = (req, res, next) => {
     ? req.headers.authorization.split(" ")[1]
     : null;
 
-  const cookieToken = req.cookies?.accessToken;
+  const cookieToken = req.cookies?.token;
 
   const token = headerToken || cookieToken;
 
