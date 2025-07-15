@@ -1,12 +1,8 @@
 import express from "express";
 import passport from "passport";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "../utils/token.js"; // Adjust path if utils is elsewhere
-
+import { prisma } from "../prisma/prismaClient.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
 const oauthRouter = express.Router();
-
 
 //  Google OAuth Routes
 oauthRouter.get(
@@ -43,7 +39,6 @@ oauthRouter.get(
   }
 );
 
-
 //  GitHub OAuth Routes
 oauthRouter.get(
   "/github",
@@ -78,5 +73,46 @@ oauthRouter.get(
       });
   }
 );
+
+// Check if user is authenticated (for auto-login / OAuth popup verification)
+oauthRouter.get("/is-auth", async (req, res) => {
+  try {
+    if (req.isAuthenticated?.() && req.user) {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+
+      if (!user.is_account_verified) {
+        return res.status(403).json({
+          success: false,
+          message: "Email not verified",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "User is authenticated",
+        user,
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: "User not authenticated",
+    });
+  } catch (error) {
+    console.error("OAuth /is-auth error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
 
 export default oauthRouter;

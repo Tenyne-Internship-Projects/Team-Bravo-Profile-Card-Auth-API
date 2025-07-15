@@ -1,3 +1,5 @@
+import {applyToProjectService} from '../prisma/applicationService.js';
+
 export const applyToProject = async (req, res) => {
   try {
     const { projectId } = req.params;
