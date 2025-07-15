@@ -21,8 +21,11 @@ export const registerValidator = joi.object({
     .valid(joi.ref("password"))
     .required()
     .messages({ "any.only": "Passwords do not match" }),
-     role: joi.string().valid("FREELANCER", "CLIENT", "RECRUITER", "ADMIN").required(),
-    secret: joi.string().optional() // only needed if role === "ADMIN"
+  role: joi
+    .string()
+    .valid("FREELANCER", "CLIENT", "RECRUITER", "ADMIN")
+    .required(),
+  secret: joi.string().optional(), // only needed if role === "ADMIN"
 });
 
 // createProfileValidator
@@ -47,11 +50,12 @@ export const createProfileValidator = joi.object({
 export const updateProfileValidator = joi.object({
   fullName: joi.string().min(3).max(100).optional(),
   username: joi.string().alphanum().min(3).max(30).optional(),
+  email: joi.string().email().optional(),
   phone: joi.string().min(8).max(20).optional(),
   country: joi.string().optional(),
   state: joi.string().optional(),
   city: joi.string().optional(),
-  bio: joi.string().max(500).optional(),
+  bio: joi.string().max(2500).optional(),
   skills: joi.string().max(300).optional(),
   github: joi.string().uri().optional().allow("", null),
   linkedin: joi.string().uri().optional().allow("", null),

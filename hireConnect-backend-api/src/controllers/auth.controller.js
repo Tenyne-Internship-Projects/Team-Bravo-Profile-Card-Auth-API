@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { prisma } from "../prisma/prismaClient.js";
 import {
   createUser,
   getUserByEmail,
@@ -338,9 +339,28 @@ export const isAuth = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Just a minimal check — useful for frontend auth guards
-    return res.json({ success: true });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        is_account_verified: true,
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.json({
+      success: true,
+      userData: user,
+    });
   } catch (error) {
+    console.error("isAuth error:", error); // helpful for debugging
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };

@@ -95,6 +95,27 @@ app.get("/", (req, res) => {
   res.send("API is working fine");
 });
 
+// serve the static uploads directory
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    const origin = req.headers.origin;
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin || "*");
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+      // Enables <img> rendering from another domain
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    }
+
+    next();
+  },  
+  express.static(path.join(__dirname, "uploads"))
+);
+
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/projects", projectRouter);
@@ -104,9 +125,6 @@ app.use("/api/", adminProfileRoutes);
 app.use("/api/", clientProfileRoutes);
 app.use("/api/", recruiterProfileRoutes);
 app.use("/api/test", testOtpRoute);
-
-// serve the static uploads directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);

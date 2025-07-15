@@ -70,10 +70,16 @@ export const getProfile = async (req, res) => {
     const parsedProfile = {
       ...profile,
       skills: profile.skills
-        ? profile.skills.split(",").map((s) => s.trim()).filter(Boolean)
+        ? profile.skills
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
         : [],
       tools: profile.tools
-        ? profile.tools.split(",").map((t) => t.trim()).filter(Boolean)
+        ? profile.tools
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
         : [],
     };
 
@@ -83,7 +89,6 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ success: false, message: "Error getting profile" });
   }
 };
-
 
 // Update profile
 export const updateProfile = async (req, res) => {
@@ -177,10 +182,9 @@ export const updateAvatar = async (req, res) => {
       });
     }
 
-    const baseURL = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const baseURL =
+      process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const avatarUrl = `${baseURL}/uploads/avatars/${req.file.filename}`;
- 
-
 
     const updatedProfile = await prisma.profile.update({
       where: { user_id: userId },
@@ -227,12 +231,15 @@ export const uploadDocuments = async (req, res) => {
         .json({ success: false, message: "Profile not found" });
     }
 
- //  Construct full URLs for each uploaded file
-    const baseURL = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-    const urls = files.map((file) => `${baseURL}/uploads/documents/${file.filename}`);
+    //  Construct full URLs for each uploaded file
+    const baseURL =
+      process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const urls = files.map(
+      (file) => `${baseURL}/uploads/documents/${file.filename}`
+    );
 
-    // Append new documents to existing ones
-    const updatedDocuments = (existingProfile.documents || []).concat(newUrls);
+    // Replace previous documents
+    const updatedDocuments = newUrls;
 
     // Update profile with combined documents array
     await prisma.profile.update({
@@ -242,7 +249,7 @@ export const uploadDocuments = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Documents uploaded successfully",
+      message: "Document uploaded successfully",
       documents: updatedDocuments,
     });
   } catch (err) {
@@ -261,7 +268,9 @@ export const deleteDocument = async (req, res) => {
     });
 
     if (!profile) {
-      return res.status(404).json({ success: false, message: "Profile not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
     }
 
     const updatedDocs = profile.documents.filter(
@@ -342,10 +351,12 @@ export const getUserDataController = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    return res.json({ success: true, userData: user });
+    return res.json({ success: true, profile: user });
   } catch (err) {
     console.error("getUserData error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
