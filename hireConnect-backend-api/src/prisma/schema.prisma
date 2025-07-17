@@ -13,6 +13,7 @@ model User {
   email                String    @unique
   password             String
   provider             String    @default("local")
+    providerId         String?
   refresh_token        String    @default("")
   email_otp_hash       String?
   email_otp_expire_at  DateTime?

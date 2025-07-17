@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma/prismaClient.js";
+import { cookieOptions } from "../utils/cookies.js";
 import {
   createUser,
   getUserByEmail,
@@ -17,6 +18,9 @@ import { generateOTP } from "../utils/otpGenerator.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
 import { sendOTPEmail } from "../utils/otp.js";
 import { registerValidator } from "../utils/validator.js";
+
+// Standardize SameSite across all cookies
+const sameSiteValue = process.env.NODE_ENV === "production" ? "none" : "lax";
 
 export const register = async (req, res) => {
   const { error } = registerValidator.validate(req.body);
@@ -81,10 +85,8 @@ export const register = async (req, res) => {
     });
 
     res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      ...cookieOptions,
+      maxAge: 60 * 60 * 1000, // 1 hour
     });
 
     return res.status(201).json({
@@ -133,9 +135,7 @@ export const verifyEmail = async (req, res) => {
     const refreshToken = generateRefreshToken(payload);
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      ...cookieOptions,
     });
 
     return res.status(200).json({
@@ -176,17 +176,13 @@ export const login = async (req, res) => {
     const refreshToken = generateRefreshToken(payload);
 
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      ...cookieOptions,
       maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie("token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 60 * 60 * 1000, // 1h
+      ...cookieOptions,
+      maxAge: 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -215,17 +211,22 @@ export const refreshToken = async (req, res) => {
       .json({ success: false, message: "Refresh token missing" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    const newAccessToken = generateAccessToken({ id: decoded.id });
+    const { id, email, role } = jwt.verify(
+      token,
+      process.env.JWT_REFRESH_SECRET
+    );
+    const newAccessToken = generateAccessToken({ id, email, role });
 
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
+    res.cookie("token", newAccessToken, {
+      ...cookieOptions,
       maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
-    return res.json({ success: true, message: "Access token refreshed" });
+    return res.json({
+      success: true,
+      message: "Access token refreshed",
+      token: newAccessToken,
+    });
   } catch (err) {
     return res
       .status(403)
@@ -239,12 +240,12 @@ export const logout = async (req, res) => {
       .clearCookie("accessToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: sameSiteValue,
       })
       .clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: sameSiteValue,
       });
 
     return res.json({ success: true, message: "Logged out" });
@@ -334,6 +335,8 @@ export const resendOtp = async (req, res) => {
 
 export const isAuth = async (req, res) => {
   try {
+    console.log("isAuth called");
+    console.log("req.user:", req.user);
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -343,6 +346,7 @@ export const isAuth = async (req, res) => {
       where: { id: userId },
       select: {
         id: true,
+        name: true,
         email: true,
         role: true,
         is_account_verified: true,
@@ -360,7 +364,7 @@ export const isAuth = async (req, res) => {
       userData: user,
     });
   } catch (error) {
-    console.error("isAuth error:", error); // helpful for debugging
+    console.error("isAuth error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };

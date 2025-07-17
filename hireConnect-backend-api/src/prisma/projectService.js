@@ -37,9 +37,16 @@ export const createProject = async (data, userId, files) => {
 };
 
 //  GET ALL PROJECTS
-export const getAllProjects = async (filters, page = 1, limit = 10) => {
-  const { keyword, skills, min, max } = filters;
-
+// SERVICE: GET ALL PROJECTS
+export const getAllProjects = async ({
+  keyword,
+  skills,
+  min,
+  max,
+  location,
+  page = 1,
+  limit = 10,
+}) => {
   const where = {
     AND: [
       keyword
@@ -51,15 +58,22 @@ export const getAllProjects = async (filters, page = 1, limit = 10) => {
           }
         : {},
       skills?.length ? { skills: { hasSome: skills } } : {},
-      min ? { min_budget: { gte: parseInt(min) } } : {},
-      max ? { max_budget: { lte: parseInt(max) } } : {},
+      location
+        ? {
+            location: { contains: location, mode: "insensitive" },
+          }
+        : {},
+      min ? { min_budget: { gte: min } } : {},
+      max ? { max_budget: { lte: max } } : {},
     ],
   };
+
+  const skip = (page - 1) * limit;
 
   const [projects, total] = await Promise.all([
     prisma.project.findMany({
       where,
-      skip: (page - 1) * limit,
+      skip,
       take: limit,
       orderBy: { created_at: "desc" },
     }),
@@ -68,12 +82,13 @@ export const getAllProjects = async (filters, page = 1, limit = 10) => {
 
   return {
     success: true,
+    projects,
     pagination: {
       total,
-      page,
+      currentPage: page,
+      pageSize: limit,
       totalPages: Math.ceil(total / limit),
     },
-    projects,
   };
 };
 

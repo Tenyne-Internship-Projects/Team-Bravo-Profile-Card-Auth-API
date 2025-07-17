@@ -23,20 +23,31 @@ export const createProjectController = async (req, res) => {
 // GET ALL PROJECTS
 export const getProjectsController = async (req, res) => {
   try {
-    const { page = 1, limit = 10, keyword, skills, min, max } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const keyword = req.query.keyword?.trim() || undefined;
+    const location = req.query.location?.trim() || undefined;
+    const min = req.query.min ? parseFloat(req.query.min) : undefined;
+    const max = req.query.max ? parseFloat(req.query.max) : undefined;
+    const skills = req.query.skills
+      ? Array.isArray(req.query.skills)
+        ? req.query.skills
+        : req.query.skills.split(",").filter(Boolean)
+      : undefined;
 
-    const filters = {
-      page: parseInt(page),
-      limit: parseInt(limit),
+    const result = await getAllProjects({
+      page,
+      limit,
       keyword,
-      skills: skills ? skills.split(",") : undefined,
+      location,
       min,
       max,
-    };
+      skills,
+    });
 
-    const result = await getAllProjects(filters);
     return res.status(200).json(result);
   } catch (error) {
+    console.error("getProjectsController crashed:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -5,9 +5,12 @@ import { prisma } from "../prisma/prismaClient.js";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Serialize user ID into session
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
+
+// Deserialize user ID from session
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await prisma.user.findUnique({
@@ -28,8 +31,29 @@ passport.use(
       callbackURL: `${process.env.OAUTH_REDIRECT_URL}/api/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
-      // Handle user login/signup logic here
-      return done(null, profile);
+      try {
+        const email = profile.emails?.[0]?.value;
+        const provider = profile.provider;
+
+        let user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: profile.displayName || profile.username,
+              provider,
+              providerId: profile.id,
+            },
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
     }
   )
 );
@@ -43,8 +67,29 @@ passport.use(
       callbackURL: `${process.env.OAUTH_REDIRECT_URL}/api/auth/github/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
-      // Handle user login/signup logic here
-      return done(null, profile);
+      try {
+        const email = profile.emails?.[0]?.value;
+        const provider = profile.provider;
+
+        let user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: profile.displayName || profile.username,
+              provider,
+              providerId: profile.id,
+            },
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
     }
   )
 );
