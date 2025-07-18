@@ -5,11 +5,6 @@ import { prisma } from "../prisma/prismaClient.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Serialize user ID into session
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
 // Deserialize user ID from session
 passport.deserializeUser(async (id, done) => {
   try {

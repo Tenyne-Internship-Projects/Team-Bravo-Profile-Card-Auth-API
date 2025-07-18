@@ -1,4 +1,5 @@
 import express from "express";
+import handleGoogleAuth from "../controllers/googleAuthHandler.js";
 import {
   register,
   login,
@@ -25,9 +26,11 @@ authRouter.post("/resend-otp", resendOtp);
 authRouter.post("/verify-otp", verifyEmail);
 authRouter.post("/login", loginRateLimiter, login);
 authRouter.post("/logout", logout);
-authRouter.post("/refresh-token", verifyToken, refreshToken);
+authRouter.post("/refresh-token", refreshToken);
 authRouter.post("/forgot-password", sendResetOtp);
 authRouter.post("/reset-password", resetPasswordController);
+
+authRouter.post("/google/token", handleGoogleAuth);
 
 // Updated debug route using Prisma
 authRouter.get("/debug-reset-otp/:email", async (req, res) => {

@@ -21,6 +21,7 @@ import applicationRouter from "./src/routes/applicationRoutes.js";
 import adminProfileRoutes from "./src/routes/adminProfileRoutes.js";
 import clientProfileRoutes from "./src/routes/clientProfileRoutes.js";
 import recruiterProfileRoutes from "./src/routes/recruiterProfileRoutes.js";
+import metricsRoutes from "./src/routes/metricsRoutes.js";
 import testOtpRoute from "./src/routes/testOtpRoute.js";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
@@ -89,7 +90,6 @@ app.use(
 );
 
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.get("/", (req, res) => {
   res.send("API is working fine");
@@ -112,7 +112,7 @@ app.use(
     }
 
     next();
-  },  
+  },
   express.static(path.join(__dirname, "uploads"))
 );
 
@@ -124,6 +124,7 @@ app.use("/api/", applicationRouter);
 app.use("/api/", adminProfileRoutes);
 app.use("/api/", clientProfileRoutes);
 app.use("/api/", recruiterProfileRoutes);
+app.use("/api/metrics", metricsRoutes);
 app.use("/api/test", testOtpRoute);
 
 app.use(notFoundHandler);

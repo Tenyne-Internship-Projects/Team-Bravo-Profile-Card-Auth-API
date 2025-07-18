@@ -36,6 +36,8 @@ model User {
   projects   Project[]   @relation("PostedProjects")
   favorites  Favorite[]
 
+ profileViews   Int      @default(0)     // Total number of times profile was viewed
+
   @@index([email])
   @@index([role])
   @@index([created_at])
@@ -63,6 +65,9 @@ model Profile {
   documents    String[] @default([])
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+
+  profileViews Int      @default(0)         // Total number of times profile was viewed
+
 }
 
 model Otp {
@@ -157,6 +162,9 @@ model Project {
   posted_by    User          @relation("PostedProjects", fields: [posted_by_id], references: [id], onDelete: Cascade)
   applications Application[]
   favorites    Favorite[]
+
+  is_paid      Boolean       @default(false)        // Whether this project has been paid for
+  budget       Int?                                 // Optional direct budget value (alternative to min/max)
 }
 
 model Application {
