@@ -61,6 +61,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
     "@babel/preset-env": "^7.27.2",
     "@jest/globals": "^30.0.3",
     "@types/jest": "^30.0.0",
