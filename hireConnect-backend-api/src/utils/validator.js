@@ -32,6 +32,7 @@ export const registerValidator = joi.object({
 export const createProfileValidator = joi.object({
   fullName: joi.string().min(3).max(100).required(),
   username: joi.string().alphanum().min(3).max(30).required(),
+   role: joi.string().min(3).max(100).required(),
   email: joi.string().email().required(),
   phone: joi.string().min(8).max(20).required(),
   country: joi.string().required(),
@@ -50,6 +51,7 @@ export const createProfileValidator = joi.object({
 export const updateProfileValidator = joi.object({
   fullName: joi.string().min(3).max(100).optional(),
   username: joi.string().alphanum().min(3).max(30).optional(),
+  role: joi.string().min(3).max(100).optional(),
   email: joi.string().email().optional(),
   phone: joi.string().min(8).max(20).optional(),
   country: joi.string().optional(),

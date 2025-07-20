@@ -24,6 +24,7 @@ export async function updateProfileByUserId(userId, newData) {
     data: {
       fullName: safe(newData.fullName, existing.fullName),
       username: safe(newData.username, existing.username),
+      role: safe(newData.role, existing.role),
       email: safe(newData.email, existing.email),
       phone: safe(newData.phone, existing.phone),
       github: safe(newData.github, existing.github),

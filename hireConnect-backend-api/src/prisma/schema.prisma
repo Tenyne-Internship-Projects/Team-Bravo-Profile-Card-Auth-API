@@ -49,6 +49,7 @@ model Profile {
   user_id      Int      @unique
   fullName     String
   username     String
+  role         String   @default("") 
   email        String   @unique
   phone        String
   country      String
