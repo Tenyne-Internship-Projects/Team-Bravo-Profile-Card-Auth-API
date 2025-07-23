@@ -1,3 +1,8 @@
+import { OAuth2Client } from "google-auth-library";
+import { cookieOptions } from "../utils/cookies.js";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 const handleGoogleAuth = async (req, res) => {
   const { id_token } = req.body;
 
@@ -35,10 +40,12 @@ const handleGoogleAuth = async (req, res) => {
 
     res
       .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        ...cookieOptions,
         maxAge: 30 * 24 * 60 * 60 * 1000,
+      })
+      .cookie("token", accessToken, {
+        ...cookieOptions,
+        maxAge: 60 * 60 * 1000,
       })
       .json({
         success: true,

@@ -33,6 +33,9 @@
   ],
   "author": "Team Bravo – Tenyne Internship",
   "license": "ISC",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@prisma/client": "^5.14.0",
     "bcrypt": "^6.0.0",
